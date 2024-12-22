@@ -5,7 +5,11 @@ const selectedColor = ref(null);
 const currentColor = ref('black');
 const brushThickness = ref(5);
 const isEraserActive = ref(false);
+const isEraserBlackedOut = ref(false);
 
+const toggleEraserBlackout = () => {
+  isEraserBlackedOut.value = !isEraserBlackedOut.value;
+};
 const changeColor = (color, event) => {
   if (selectedColor.value) {
     selectedColor.value.style.border = 'none';
@@ -22,6 +26,7 @@ const changeThickness = (thickness) => {
 
 const activateEraser = () => {
   isEraserActive.value = true;
+  toggleEraserBlackout()
 };
 
 onMounted(() => {
@@ -82,27 +87,28 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="background">
+  <div class="background" draggable="false">
     <div class="main-wrapper">
       <div class="left-wrapper">
         <div class="user-list-wrapper">
-          <div class="user-list">
+          <div class="user-list" draggable="false">
 
           </div>
-        </div>
-
-        <div class="answers">
 
         </div>
 
-        <div class="chat">
+        <div class="answers" draggable="false">
+
+        </div>
+
+        <div class="chat" draggable="false">
 
         </div>
       </div>
 
-      <div class="paint-board-wrapper">
-        <img src="../assets/bg_content.svg" alt="Background" class="background-image" >
-        <canvas id="paintCanvas"></canvas>
+      <div class="paint-board-wrapper" draggable="false">
+        <img src="../assets/bg_content.svg" alt="Background" class="background-image" draggable="false">
+        <canvas draggable="false" id="paintCanvas"></canvas>
       </div>
 
       <div class="tools-panel">
@@ -121,12 +127,12 @@ onMounted(() => {
           <div @click="changeColor('gray', $event)" style="background-color: gray; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
         </div>
 
-        <div class="brush-thickness" style="margin-top: 20px; margin-left: -10px; margin-right:10px" >
-          <label for="thicknessRange">Толщина</label>
-          <input id="thicknessRange" type="range" min="1" max="50" v-model="brushThickness" @input="changeThickness(brushThickness)" />
+        <div class="brush-thickness" style="margin-top: 20px; margin-left: -10px; margin-right:10px; user-select: none;" draggable="false">
+          <label draggable="false" for="thicknessRange">Толщина</label>
+          <input draggable="false" id="thicknessRange" type="range" min="1" max="50" v-model="brushThickness" @input="changeThickness(brushThickness)" />
         </div>
-        <div class="eraser" @click="activateEraser">
-          <img src="../assets/eraser.svg" alt="Eraser" class="eraser-icon">
+        <div class="eraser" @click="activateEraser" style="user-select: none; cursor: pointer" draggable="false">
+          <img src="../assets/eraser.svg" alt="Eraser" class="eraser-icon" draggable="false" :style="{ filter: isEraserBlackedOut ? 'brightness(0.75)' : 'none' }" >
         </div>
       </div>
     </div>
