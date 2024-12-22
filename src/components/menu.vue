@@ -1,11 +1,20 @@
 <script setup>
 import {useRouter} from 'vue-router';
+import {ref} from "vue";
 import '@fortawesome/fontawesome-free/css/all.css';
+import LoginComponent from './LoginComponent.vue';
 
 const router = useRouter();
+const showLogin = ref(false);
 
 function goToGame() {
   router.push('/game');
+}
+function logout() {
+  showLogin.value = true;
+}
+function revertMenu() {
+  showLogin.value = false;
 }
 </script>
 
@@ -13,12 +22,18 @@ function goToGame() {
   <div class="background">
 
     <div class="menu-wrapper">
+      <div  v-if="showLogin" class="go-to-menu-icon-wrapper" @click="revertMenu">
+        <div class="go-to-menu-icon">
+          <img src="../assets/small_button_border.svg" alt="border" class="home-border">
+          <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
+        </div>
+      </div>
 
-      <div class="wrapper">
+      <div  v-if="!showLogin"  class="wrapper">
         <div class="avatar">
           <img src="../assets/avatar.svg" alt="Avatar" class="avatar-img">
         </div>
-        <button class="logout">
+        <button class="logout" @click="logout">
           <i class="fas fa-sign-out-alt"></i> Выйти
         </button>
         <div class="button-play button" @click="goToGame">
@@ -28,6 +43,7 @@ function goToGame() {
           Комнаты
         </div>
       </div>
+      <LoginComponent v-else />
 
     </div>
 
@@ -36,6 +52,26 @@ function goToGame() {
 </template>
 
 <style scoped>
+.go-to-menu-icon-wrapper{
+  cursor: pointer;
+}
+.menu-wrapper{
+  position:relative;
+}
+.go-to-menu-icon-wrapper{
+  position:absolute;
+  top: 13%;
+  left:25%;
+}
+
+.home-icon {
+  position: absolute;
+  right:0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+}
 .background {
 
   background-image: url("../assets/bg.svg");
@@ -58,7 +94,6 @@ function goToGame() {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px 0;
 }
 
 
