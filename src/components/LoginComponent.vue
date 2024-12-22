@@ -2,7 +2,6 @@
 import showPasswordIcon from '../assets/show-password.svg';
 import hidePasswordIcon from '../assets/hide-password.svg';
 import RegistrationComponent from './RegistrationComponent.vue';
-
 import {ref} from "vue";
 const showPassword = ref(false);
 

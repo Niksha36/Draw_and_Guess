@@ -1,12 +1,15 @@
 <script setup>
 import { onMounted, ref } from 'vue';
-
+import {useRouter} from 'vue-router';
 const selectedColor = ref(null);
 const currentColor = ref('black');
 const brushThickness = ref(5);
 const isEraserActive = ref(false);
 const isEraserBlackedOut = ref(false);
-
+const router = useRouter();
+function goToMenu() {
+  router.push('/');
+}
 const toggleEraserBlackout = () => {
   isEraserBlackedOut.value = !isEraserBlackedOut.value;
 };
@@ -109,6 +112,12 @@ onMounted(() => {
       <div class="paint-board-wrapper" draggable="false">
         <img src="../assets/bg_content.svg" alt="Background" class="background-image" draggable="false">
         <canvas draggable="false" id="paintCanvas"></canvas>
+        <div class="go-to-menu-icon-wrapper" @click="goToMenu" style="cursor: pointer">
+          <div class="go-to-menu-icon">
+            <img src="../assets/small_button_border.svg" alt="border" class="home-border">
+            <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
+          </div>
+        </div>
       </div>
 
       <div class="tools-panel">
@@ -141,6 +150,15 @@ onMounted(() => {
 </template>
 
 <style scoped>
+
+.home-icon {
+  position: absolute;
+  right:0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .left-wrapper{
   display: flex;
   flex-direction: column;
@@ -220,6 +238,13 @@ canvas {
   width: 150px;
   height: 100%;
   padding:10px 0 10px 20px;
+}
+.go-to-menu-icon{
+  position:absolute;
+  display: block;
+  z-index:10;
+  top:33px;
+  left:31px;
 }
 canvas {
   position:absolute;
