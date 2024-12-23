@@ -1,15 +1,18 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import {onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
+
 const selectedColor = ref(null);
 const currentColor = ref('black');
 const brushThickness = ref(5);
 const isEraserActive = ref(false);
 const isEraserBlackedOut = ref(false);
 const router = useRouter();
+
 function goToMenu() {
   router.push('/');
 }
+
 const toggleEraserBlackout = () => {
   isEraserBlackedOut.value = !isEraserBlackedOut.value;
 };
@@ -59,29 +62,29 @@ onMounted(() => {
 
     if (x < 60 || x > canvas.width - 60 || y < 60 || y > canvas.height - 60) return;
 
-  if (isEraserActive.value) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.lineWidth = brushThickness.value;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = 'rgba(0,0,0,1)';
+    if (isEraserActive.value) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = brushThickness.value;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(0,0,0,1)';
 
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.restore();
-  } else {
-    ctx.lineWidth = brushThickness.value;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = currentColor.value;
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.restore();
+    } else {
+      ctx.lineWidth = brushThickness.value;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = currentColor.value;
 
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-  }
-};
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
+  };
 
   canvas.addEventListener('mousedown', startPosition);
   canvas.addEventListener('mouseup', endPosition);
@@ -122,26 +125,45 @@ onMounted(() => {
 
       <div class="tools-panel">
         <div class="colors">
-          <div @click="changeColor('red', $event)" style="background-color: red; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div @click="changeColor('orange', $event)" style="background-color: orange; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div @click="changeColor('yellow', $event)" style="background-color: yellow; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div @click="changeColor('green', $event)" style="background-color: #00ff00; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div @click="changeColor('Cyan', $event)" style="background-color: #00fffa; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div @click="changeColor('blue', $event)" style="background-color: blue; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div @click="changeColor('violet', $event)" style="background-color: violet; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div @click="changeColor('purple', $event)" style="background-color: purple; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div @click="changeColor('magenta', $event)" style="background-color: magenta; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div @click="changeColor('pink', $event)" style="background-color: pink; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div @click="changeColor('brown', $event)" style="background-color: brown; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div @click="changeColor('gray', $event)" style="background-color: gray; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('black', $event)"
+               style="background-color: black; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('white', $event)"
+               style="background-color: white; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('red', $event)"
+               style="background-color: red; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('orange', $event)"
+               style="background-color: orange; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('yellow', $event)"
+               style="background-color: yellow; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('green', $event)"
+               style="background-color: #00ff00; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('Cyan', $event)"
+               style="background-color: #00fffa; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('blue', $event)"
+               style="background-color: blue; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('violet', $event)"
+               style="background-color: violet; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('purple', $event)"
+               style="background-color: purple; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('magenta', $event)"
+               style="background-color: magenta; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('pink', $event)"
+               style="background-color: pink; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('brown', $event)"
+               style="background-color: brown; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div @click="changeColor('gray', $event)"
+               style="background-color: gray; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
         </div>
 
-        <div class="brush-thickness" style="margin-top: 20px; margin-left: -10px; margin-right:10px; user-select: none;" draggable="false">
+        <div class="brush-thickness" style="margin-top: 20px; margin-left: -10px; margin-right:10px; user-select: none;"
+             draggable="false">
           <label draggable="false" for="thicknessRange">Толщина</label>
-          <input draggable="false" id="thicknessRange" type="range" min="1" max="50" v-model="brushThickness" @input="changeThickness(brushThickness)" />
+          <input draggable="false" id="thicknessRange" type="range" min="1" max="50" v-model="brushThickness"
+                 @input="changeThickness(brushThickness)"/>
         </div>
         <div class="eraser" @click="activateEraser" style="user-select: none; cursor: pointer" draggable="false">
-          <img src="../assets/eraser.svg" alt="Eraser" class="eraser-icon" draggable="false" :style="{ filter: isEraserBlackedOut ? 'brightness(0.75)' : 'none' }" >
+          <img src="../assets/eraser.svg" alt="Eraser" class="eraser-icon" draggable="false"
+               :style="{ filter: isEraserBlackedOut ? 'brightness(0.75)' : 'none' }">
         </div>
       </div>
     </div>
@@ -153,27 +175,29 @@ onMounted(() => {
 
 .home-icon {
   position: absolute;
-  right:0;
+  right: 0;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
 
-.left-wrapper{
+.left-wrapper {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   background-size: 100% 100%;
 }
-.user-list-wrapper{
+
+.user-list-wrapper {
   background-image: url("../assets/bg_rank.svg");
   background-size: cover;
   background-repeat: no-repeat;
   height: 200px;
   width: 100%;
 }
+
 .background {
-  background-image: url("../assets/bg.svg") ;
+  background-image: url("../assets/bg.svg");
   background-color: #7361f7;
   height: 100vh;
   width: 100vw;
@@ -181,14 +205,17 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
 }
-.left-wrapper{
+
+.left-wrapper {
   width: 376px;
 }
+
 .answers {
   background: white;
   border-radius: 20px;
   height: 212px;
 }
+
 .user-list-wrapper,
 .answers,
 .chat {
@@ -196,6 +223,7 @@ onMounted(() => {
   flex-grow: 1;
   margin-bottom: 2rem;
 }
+
 .chat {
   background: white;
   border-radius: 20px;
@@ -225,37 +253,43 @@ canvas {
   position: relative;
   z-index: 2;
 }
-.main-wrapper{
+
+.main-wrapper {
   display: flex;
   justify-content: space-between;
   width: 100%;
   height: 90%;
   padding: 0 10px;
 }
-.tools-panel{
+
+.tools-panel {
   background: white;
   border-radius: 20px;
   width: 150px;
   height: 100%;
-  padding:10px 0 10px 20px;
+  padding: 10px 0 10px 20px;
 }
-.go-to-menu-icon{
-  position:absolute;
+
+.go-to-menu-icon {
+  position: absolute;
   display: block;
-  z-index:10;
-  top:33px;
-  left:31px;
+  z-index: 10;
+  top: 33px;
+  left: 31px;
 }
+
 canvas {
-  position:absolute;
+  position: absolute;
   display: block;
-  z-index:10;
+  z-index: 10;
 }
-.colors{
+
+.colors {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
+
 .colors div {
   border-radius: 50%;
 }

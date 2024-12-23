@@ -10,6 +10,9 @@ const showLogin = ref(false);
 function goToGame() {
   router.push('/game');
 }
+function goToRoom() {
+  router.push('/room');
+}
 function logout() {
   showLogin.value = true;
 }
@@ -20,7 +23,6 @@ function revertMenu() {
 
 <template>
   <div class="background">
-
     <div class="menu-wrapper">
       <div  v-if="showLogin" class="go-to-menu-icon-wrapper" @click="revertMenu">
         <div class="go-to-menu-icon">
@@ -39,8 +41,8 @@ function revertMenu() {
         <div class="button-play button" @click="goToGame">
           Играть
         </div>
-        <div class="button-create-room button">
-          Комнаты
+        <div class="button-play button" @click="goToRoom()">
+          Создать игру
         </div>
       </div>
       <LoginComponent v-else />
