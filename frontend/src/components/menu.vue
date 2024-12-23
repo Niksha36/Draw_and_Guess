@@ -19,6 +19,7 @@ function revertMenu() {
 function goToRoom() {
   router.push('/room');
 }
+
 </script>
 
 <template>
@@ -44,7 +45,7 @@ function goToRoom() {
           <div class="button-play button" @click="goToGame">
             Играть
           </div>
-          <div class="button-play button" @click="goToRoom()">
+          <div class="button-play button"  @login-success="revertMenu" @click="goToRoom()">
             Создать игру
           </div>
         </div>

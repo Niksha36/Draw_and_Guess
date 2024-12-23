@@ -4,12 +4,13 @@ import axios from 'axios';
 import showPasswordIcon from '../assets/show-password.svg';
 import hidePasswordIcon from '../assets/hide-password.svg';
 import RegistrationComponent from './RegistrationComponent.vue';
-import {ref} from "vue";
+import {ref, defineEmits} from "vue";
 
 const showPassword = ref(false);
 const username = ref(""); 
 const password = ref(""); 
 const showRegistration = ref(false);
+const emit = defineEmits(['login-success']);
 
 function togglePassword() {
   showPassword.value = !showPassword.value;
@@ -24,6 +25,7 @@ async function loginUser() {
       username: username.value,
       password: password.value,
     });
+    emit('login-success');
   }  catch (error) { 
     if (error.response && error.response.status === 400) {
       const errors = error.response.data;

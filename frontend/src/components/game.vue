@@ -1,6 +1,7 @@
 <script setup>
 import usersTableComponent from './usersInGameTableComponent.vue';
 import chatComponent from './chatComponent.vue'
+import answersComponent from './AnswersComponent.vue'
 import { onMounted, ref } from 'vue';
 import {useRouter} from 'vue-router';
 const selectedColor = ref(null);
@@ -104,7 +105,7 @@ onMounted(() => {
         </div>
 
         <div class="answers" draggable="false">
-
+          <answers-component/>
         </div>
 
         <div class="chat" draggable="false">
@@ -199,6 +200,7 @@ onMounted(() => {
   background: white;
   border-radius: 20px;
   height: 212px;
+  padding: 10px;
 }
 .user-list-wrapper,
 .answers,

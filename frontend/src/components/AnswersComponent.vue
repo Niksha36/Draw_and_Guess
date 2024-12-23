@@ -1,16 +1,20 @@
 <script setup>
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { messages, newMessage, fetchMessages, sendMessage } from '../js/chat.js';
-
+function isCorrectAnswer(message, answer) {
+  return message.text.toLowerCase() === answer;
+}
 onMounted(fetchMessages);
 </script>
 
 <template>
   <div class="chat-wrapper">
     <div class="chat-messages">
-      <div v-for="message in messages" :key="message.id" class="chat-message">
-        <strong class="chat-message-author">{{ message.author }}</strong>
-        <span class="chat-message-text">{{ message.text }}</span>
+      <div class="chat-messages">
+        <div v-for="message in messages" :key="message.id" :class="{'chat-message': true, 'correct-answer': isCorrectAnswer(message)}">
+          <strong class="chat-message-author">{{ message.author }}</strong>
+          <span class="chat-message-text">{{ message.text }}</span>
+        </div>
       </div>
     </div>
 
@@ -28,6 +32,9 @@ onMounted(fetchMessages);
 </template>
 
 <style scoped>
+.correct-answer{
+  color: #0ee30e;
+}
 .chat-message-text{
   margin-left: 10px;
   user-select: none;
