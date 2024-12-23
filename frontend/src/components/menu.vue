@@ -41,8 +41,8 @@ function revertMenu() {
           <div class="button-play button" @click="goToGame">
             Играть
           </div>
-          <div class="button-create-room button">
-            Комнаты
+          <div class="button-play button" @click="goToRoom()">
+            Создать игру
           </div>
         </div>
         <LoginComponent v-else />

@@ -6,8 +6,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+.vscode
 venv
-/drawgame/drawgame/__pycache__
+__pycache__
+/backend/test_*
+
 
 node_modules
 .DS_Store
