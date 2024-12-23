@@ -1,5 +1,6 @@
 <script setup>
 import usersTableComponent from './usersInGameTableComponent.vue';
+import chatComponent from './chatComponent.vue'
 import { onMounted, ref } from 'vue';
 import {useRouter} from 'vue-router';
 const selectedColor = ref(null);
@@ -107,7 +108,7 @@ onMounted(() => {
         </div>
 
         <div class="chat" draggable="false">
-
+          <chatComponent/>
         </div>
       </div>
 
@@ -152,7 +153,9 @@ onMounted(() => {
 </template>
 
 <style scoped>
-
+.chat{
+  padding: 10px;
+}
 .home-icon {
   position: absolute;
   right:0;
