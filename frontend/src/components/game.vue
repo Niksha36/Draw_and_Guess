@@ -60,7 +60,10 @@ onMounted(() => {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    if (x < 60 || x > canvas.width - 60 || y < 60 || y > canvas.height - 60) return;
+    if (x < 60 || x > canvas.width - 60 || y < 60 || y > canvas.height - 60) {
+      endPosition()
+      startPosition()
+    }
 
     if (isEraserActive.value) {
       ctx.save();
