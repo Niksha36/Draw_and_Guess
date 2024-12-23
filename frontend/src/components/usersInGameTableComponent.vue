@@ -20,6 +20,25 @@ const users = [
   { name: 'Vnya', score: 101, place: 7 },
   { name: 'Vnya', score: 101, place: 8 }
 ];
+//Вот видишь Эдуард хелпую как могу!
+
+// import { ref, onMounted } from 'vue';
+// import axios from 'axios';
+//
+// const users = ref([]);
+//
+// const fetchUsers = async () => {
+//   try {
+//     const response = await axios.get('http://your-django-backend-url/api/users/');
+//     users.value = response.data;
+//   } catch (error) {
+//     console.error('Error fetching users:', error);
+//   }
+// };
+//
+// onMounted(() => {
+//   fetchUsers();
+// });
 </script>
 
 <style scoped>
