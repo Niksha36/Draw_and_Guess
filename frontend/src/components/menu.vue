@@ -16,6 +16,9 @@ function logout() {
 function revertMenu() {
   showLogin.value = false;
 }
+function goToRoom() {
+  router.push('/room');
+}
 </script>
 
 <template>

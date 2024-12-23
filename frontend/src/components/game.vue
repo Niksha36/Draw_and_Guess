@@ -1,4 +1,5 @@
 <script setup>
+import usersTableComponent from './usersInGameTableComponent.vue';
 import { onMounted, ref } from 'vue';
 import {useRouter} from 'vue-router';
 const selectedColor = ref(null);
@@ -57,7 +58,10 @@ onMounted(() => {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    if (x < 60 || x > canvas.width - 60 || y < 60 || y > canvas.height - 60) return;
+    if (x < 60 || x > canvas.width - 60 || y < 60 || y > canvas.height - 60) {
+      endPosition()
+      startPosition()
+    }
 
   if (isEraserActive.value) {
     ctx.save();
@@ -93,8 +97,9 @@ onMounted(() => {
   <div class="background" draggable="false">
     <div class="main-wrapper">
       <div class="left-wrapper">
-        <div class="user-list-wrapper">
+        <div class="user-list-wrapper" style="position: relative;">
             <img src="../assets/bg_rank.svg" alt="" class="user-list-img">
+            <usersTableComponent />
         </div>
 
         <div class="answers" draggable="false">
