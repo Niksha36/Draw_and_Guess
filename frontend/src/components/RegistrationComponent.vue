@@ -1,26 +1,55 @@
 <script setup>
 
+import axios from "axios";
 import LoginComponent from "@/components/LoginComponent.vue";
 import {ref} from "vue";
 import showPasswordIcon from "@/assets/show-password.svg";
 import hidePasswordIcon from "@/assets/hide-password.svg";
-const showLogin = ref(false);
+
+const showLogin = ref(false); 
+const showPassword = ref(false); 
+const username = ref(""); 
+const password = ref(""); 
+const confirmPassword = ref(""); 
+
 function showLoginForm(){
   showLogin.value = !showLogin.value;
 }
 
-const showPassword = ref(false);
-
 function togglePassword() {
   showPassword.value = !showPassword.value;
 }
+
+async function registerUser() { 
+  if (password.value !== confirmPassword.value) { 
+    alert("Пароли не совпадают!"); 
+    return; 
+  } 
+
+  try { 
+    const response = await axios.post("/api/register/", { 
+      username: username.value, 
+      password: password.value, 
+    }); 
+    alert("Пользователь успешно зарегистрирован!"); 
+  } catch (error) { 
+    if (error.response && error.response.status === 400) {
+      const errors = error.response.data;
+      const errorMessages = Object.values(errors).flat(); 
+      alert(errorMessages);
+    } else {
+      alert("Ошибка при регистрации: Неизвестная ошибка");
+    }
+  }
+}
+
 </script>
 
 <template>
 <div v-if="!showLogin" class="registration-form">
   <h3>Регистрация</h3>
   <input
-      name="nikname"
+      v-model="username" 
       placeholder="Никнейм"
       aria-label="Login"
       autocomplete="username"
@@ -30,7 +59,7 @@ function togglePassword() {
     <input style="margin:0"
 
            :type="showPassword ? 'text' : 'password'"
-           name="password"
+           v-model="password"
            placeholder="Пароль"
            aria-label="Password"
            autocomplete="current-password"
@@ -40,14 +69,14 @@ function togglePassword() {
   <div class="password-wrapper" style="margin-top: 17px; width: 100%">
     <input style="margin:0"
            type="password"
-           name="password"
+           v-model="confirmPassword"
            placeholder="Повторите пароль"
            aria-label="Password"
            autocomplete="current-password"
     />
   </div>
-  <button @click="showRegistrationForm" style="margin-top: 17px; width: 100%">Зарегистрироваться</button>
-  <p style="text-align:center;margin:0; margin-top: 10px; font-size: 18px">Уже есть аккаунт? <a style="text-decoration-color: #7361f7; color: #7361f7;"  href="" @click.prevent = showLoginForm>Войти</a></p>
+  <button @click="registerUser" style="margin-top: 17px; width: 100%">Зарегистрироваться</button> 
+  <p style="margin:0; margin-top: 10px; font-size: 18px">Уже есть аккаунт? <a href="" @click.prevent = showLoginForm>Войти</a></p>
 </div>
   <LoginComponent v-else />
 </template>
