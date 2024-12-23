@@ -65,6 +65,9 @@ button{
   border: none;
   color: #ffffff;
 }
+button:hover{
+  background: #5a4db8
+}
 a:hover{
   color: #261C5CFF!important;
   text-decoration-color: #261C5CFF !important;

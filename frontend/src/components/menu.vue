@@ -132,7 +132,9 @@ function revertMenu() {
   background-color: #7361f7;
   box-shadow: 0px 6px 0px 0px #320067;
 }
-
+.logout:hover {
+  background-color:  #5a4db8 !important;
+}
 .avatar {
   display: flex;
   justify-content: center;

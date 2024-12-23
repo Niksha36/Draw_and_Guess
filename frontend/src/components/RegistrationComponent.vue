@@ -79,6 +79,9 @@ button{
   border: none;
   color: #ffffff;
 }
+button:hover{
+  background: #5a4db8
+}
 .registration-form{
   display: flex;
   flex-direction: column;
