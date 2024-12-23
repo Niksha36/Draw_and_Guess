@@ -38,7 +38,7 @@ async function loginUser() {
 </script>
 
 <template>
-<div v-if="!showPassword" class="login-form">
+<div v-if="!showRegistration" class="login-form">
   <h3>Вход</h3>
   <input
       name="nikname"
@@ -63,7 +63,6 @@ async function loginUser() {
   <p style="margin:0; margin-top: 10px; font-size: 18px">Еще нет аккаунта? <a href="" @click.prevent = showRegistrationForm>Зарегистрироваться</a></p>
 </div>
   <RegistrationComponent v-else />
-
 </template>
 
 <style scoped>
