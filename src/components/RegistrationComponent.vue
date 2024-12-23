@@ -47,7 +47,7 @@ function togglePassword() {
     />
   </div>
   <button @click="showRegistrationForm" style="margin-top: 17px; width: 100%">Зарегистрироваться</button>
-  <p style="margin:0; margin-top: 10px; font-size: 18px">Уже есть аккаунт? <a href="" @click.prevent = showLoginForm>Войти</a></p>
+  <p style="text-align:center;margin:0; margin-top: 10px; font-size: 18px">Уже есть аккаунт? <a style="text-decoration-color: #7361f7; color: #7361f7;"  href="" @click.prevent = showLoginForm>Войти</a></p>
 </div>
   <LoginComponent v-else />
 </template>
@@ -64,6 +64,21 @@ function togglePassword() {
   transform: translateY(-50%);
   cursor: pointer;
 }
+
+a:hover{
+  color: #261C5CFF!important;
+  text-decoration-color: #261C5CFF !important;
+}
+
+button{
+  padding-top: 10px;
+  padding-bottom: 10px;
+  width: 100%;
+  background-color: #7361f7;
+  box-shadow: 0px 6px 0px 0px #320067;
+  border: none;
+  color: #ffffff;
+}
 .registration-form{
   display: flex;
   flex-direction: column;
@@ -73,6 +88,30 @@ function togglePassword() {
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  width: 40%;
+  width: 100%;
+}
+@media (max-height: 467px) {
+  .registration-form{
+    padding: 10px;
+  }
+  p{
+    font-size: 12px !important;
+  }
+  button{
+    padding-top: 7.5px;
+    padding-bottom: 7.5px;
+    font-size: 14px
+  }
+  input{
+    margin-bottom: 10px;
+    padding-top: 0px !important;
+    padding-bottom:0px !important;
+    font-size: 14px;
+    height: 40px !important;
+  }
+  h3{
+    margin-bottom: 10px;
+    font-size: 20px;
+  }
 }
 </style>

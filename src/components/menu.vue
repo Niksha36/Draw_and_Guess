@@ -22,6 +22,7 @@ function revertMenu() {
   <div class="background">
 
     <div class="menu-wrapper">
+      <img src="../assets/bg_content.svg" class="border-background-img" alt="">
       <div  v-if="showLogin" class="go-to-menu-icon-wrapper" @click="revertMenu">
         <div class="go-to-menu-icon">
           <img src="../assets/small_button_border.svg" alt="border" class="home-border">
@@ -29,21 +30,24 @@ function revertMenu() {
         </div>
       </div>
 
-      <div  v-if="!showLogin"  class="wrapper">
-        <div class="avatar">
-          <img src="../assets/avatar.svg" alt="Avatar" class="avatar-img">
+      <div  class="wrapper">
+        <div v-if="!showLogin"  class="content">
+          <div class="avatar">
+            <img src="../assets/avatar.svg" alt="Avatar" class="avatar-img">
+          </div>
+          <button class="logout" @click="logout">
+            <i class="fas fa-sign-out-alt"></i> Выйти
+          </button>
+          <div class="button-play button" @click="goToGame">
+            Играть
+          </div>
+          <div class="button-create-room button">
+            Комнаты
+          </div>
         </div>
-        <button class="logout" @click="logout">
-          <i class="fas fa-sign-out-alt"></i> Выйти
-        </button>
-        <div class="button-play button" @click="goToGame">
-          Играть
-        </div>
-        <div class="button-create-room button">
-          Комнаты
-        </div>
+        <LoginComponent v-else />
+
       </div>
-      <LoginComponent v-else />
 
     </div>
 
@@ -52,6 +56,10 @@ function revertMenu() {
 </template>
 
 <style scoped>
+.border-background-img{
+  width: 100%;
+  height: 100%;
+}
 .go-to-menu-icon-wrapper{
   cursor: pointer;
 }
@@ -60,8 +68,8 @@ function revertMenu() {
 }
 .go-to-menu-icon-wrapper{
   position:absolute;
-  top: 13%;
-  left:25%;
+  top: 4.5%;
+  left:2.8%;
 }
 
 .home-icon {
@@ -73,7 +81,6 @@ function revertMenu() {
 
 }
 .background {
-
   background-image: url("../assets/bg.svg");
   background-color: #7361f7;
   height: 100vh;
@@ -81,14 +88,17 @@ function revertMenu() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 20px 15%;
   z-index: 2;
 }
 
 .menu-wrapper {
+  /*
   background-image: url("../assets/bg_content.svg");
   background-size: contain;
   background-position: center;
+  background-repeat: no-repeat;
+   */
   width: 100%;
   height: 100%;
   display: flex;
@@ -96,13 +106,21 @@ function revertMenu() {
   align-items: center;
 }
 
-
+.content{
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 .wrapper {
+  position: absolute;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 80%;
+  width: 60%
 }
 
 .logout {
@@ -110,7 +128,9 @@ function revertMenu() {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 20px
+  margin-top: 20px;
+  background-color: #7361f7;
+  box-shadow: 0px 6px 0px 0px #320067;
 }
 
 .avatar {
@@ -158,17 +178,19 @@ function revertMenu() {
 
 @media (max-height: 460px) {
   .button {
-    margin-top: 20px;
+    margin-top: 15px;
     background-size: contain;
     font-size: 18px;
+    width: 271px;
+    height: 56px;
   }
 
   .logout {
     height: 10%;
     font-size: 16px;
     margin-top: 15px;
-    padding-top: 15px;
-    padding-bottom: 15px;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
 
   .avatar {
