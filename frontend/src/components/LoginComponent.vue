@@ -1,9 +1,15 @@
 <script setup>
+import axios from 'axios';
+
 import showPasswordIcon from '../assets/show-password.svg';
 import hidePasswordIcon from '../assets/hide-password.svg';
 import RegistrationComponent from './RegistrationComponent.vue';
 import {ref} from "vue";
+
 const showPassword = ref(false);
+const username = ref(""); 
+const password = ref(""); 
+
 
 function togglePassword() {
   showPassword.value = !showPassword.value;
@@ -11,13 +17,32 @@ function togglePassword() {
 function showRegistrationForm() {
   showPassword.value = !showPassword.value;
 }
+
+async function loginUser() {
+  try { 
+    const response = await axios.post('http://localhost:8000/api/login/', {   
+      username: username.value,
+      password: password.value,
+    });
+  }  catch (error) { 
+    if (error.response && error.response.status === 400) {
+      const errors = error.response.data;
+      const errorMessages = Object.values(errors).flat(); 
+      alert(errorMessages);
+    } else {
+      alert("Ошибка при авторизации: Неизвестная ошибка");
+    }
+  }
+}
+
 </script>
 
 <template>
-<div v-if=!showPassword class="login-form">
+<div v-if="!showPassword" class="login-form">
   <h3>Вход</h3>
   <input
       name="nikname"
+      v-model="username"
       placeholder="Никнейм"
       aria-label="Login"
       autocomplete="username"
@@ -26,6 +51,7 @@ function showRegistrationForm() {
     <input style="margin:0"
         :type="showPassword ? 'text' : 'password'"
         name="password"
+        v-model="password"
         placeholder="Пароль"
         aria-label="Password"
         autocomplete="current-password"
@@ -33,7 +59,7 @@ function showRegistrationForm() {
     <img :src="showPassword ? showPasswordIcon : hidePasswordIcon" alt="" class="toggle-eye" @click="togglePassword">
   </div>
 
-  <button style="margin-top: 17px">Войти</button>
+  <button @click="loginUser" style="margin-top: 17px">Войти</button>
   <p style="margin:0; margin-top: 10px; font-size: 18px">Еще нет аккаунта? <a href="" @click.prevent = showRegistrationForm>Зарегистрироваться</a></p>
 </div>
   <RegistrationComponent v-else />
