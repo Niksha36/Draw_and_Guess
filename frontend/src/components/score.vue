@@ -1,6 +1,10 @@
 <template>
   <div class="scoreboard background">
-    <div class="wrapper">
+    <div class="wrapper" style="position: relative">
+      <div class="go-to-menu-icon" @click="goToMenu"  style="position: absolute; top: -8.5%; left: 0%; padding:2px; cursor: pointer; ">
+        <img src="../assets/small_button_border.svg" alt="border" class="home-border">
+        <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
+      </div>
       <table>
         <thead>
         <tr>
@@ -25,7 +29,13 @@
 </template>
 
 <script>
+import {useRouter} from 'vue-router';
+
 export default {
+  setup() {
+    const router = useRouter();
+    return { router };
+  },
   data() {
     return {
       players: [
@@ -43,10 +53,26 @@ export default {
       ]
     };
   },
+  methods: {
+    goToMenu() {
+      this.router.push('/');
+    },
+  },
 };
 </script>
 
 <style scoped>
+.go-to-menu-icon{
+  position: relative;
+}
+.home-icon {
+  position: absolute;
+  right:0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+}
 .scoreboard {
   background: url("../assets/textura.png") no-repeat center center / cover, linear-gradient(215deg, rgba(116, 84, 249) 0%, rgb(115, 17, 176) 85%);
   height: 100vh;
