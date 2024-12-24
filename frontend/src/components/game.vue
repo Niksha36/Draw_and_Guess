@@ -14,6 +14,8 @@ const isEraserBlackedOut = ref(false);
 const router = useRouter();
 const socket = io('http://localhost:3000'); // Initialize socket connection
 
+const canvasStates = ref([]); // Stack to store canvas states
+
 function goToMenu() {
   router.push('/');
 }
@@ -41,6 +43,23 @@ const activateEraser = () => {
   toggleEraserBlackout();
 };
 
+const saveCanvasState = (canvas, ctx) => {
+  const dataUrl = canvas.toDataURL();
+  canvasStates.value.push(dataUrl);
+};
+
+const undoLastAction = (canvas, ctx) => {
+  if (canvasStates.value.length > 0) {
+    const lastState = canvasStates.value.pop();
+    const img = new Image();
+    img.src = lastState;
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+    };
+  }
+};
+
 onMounted(() => {
   const canvas = document.getElementById('paintCanvas');
   const ctx = canvas.getContext('2d');
@@ -48,8 +67,20 @@ onMounted(() => {
   let lastX = 0;
   let lastY = 0;
 
-  canvas.width = canvas.parentElement.clientWidth;
-  canvas.height = canvas.parentElement.clientHeight;
+  const resizeCanvas = () => {
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    tempCtx.drawImage(canvas, 0, 0);
+
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+
+    ctx.drawImage(tempCanvas, 0, 0);
+  };
+
+  window.addEventListener('resize', resizeCanvas);
 
   const startPosition = (e) => {
     painting = true;
@@ -70,7 +101,15 @@ onMounted(() => {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-
+    const boundaryPercentageY = 9;
+    const boundaryPercentageX = 3;
+    if (x < (canvas.width * boundaryPercentageX / 100) ||
+        x > (canvas.width * (100 - boundaryPercentageX) / 100) ||
+        y < (canvas.height * boundaryPercentageY / 100) ||
+        y > (canvas.height * (100 - boundaryPercentageY) / 100)) {
+      endPosition();
+      startPosition();
+    }
     const drawData = {
       x,
       y,
@@ -90,8 +129,8 @@ onMounted(() => {
   };
 
   const drawOnCanvas = (data) => {
-    ctx.beginPath(); // Start a new path
-    ctx.moveTo(data.lastX, data.lastY); // Move to the last position
+    ctx.beginPath();
+    ctx.moveTo(data.lastX, data.lastY);
 
     if (data.isEraser) {
       ctx.save();
@@ -113,13 +152,47 @@ onMounted(() => {
     }
   };
 
+  const undoLastAction = (canvas, ctx) => {
+    if (canvasStates.value.length > 0) {
+      const lastState = canvasStates.value.pop();
+      const img = new Image();
+      img.src = lastState;
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+      };
+      socket.emit('undo', lastState); // Emit undo event to the server
+    }
+  };
+
+  window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'z') {
+      undoLastAction(canvas, ctx);
+    }
+  });
+
+  socket.on('undo', (lastState) => {
+    const img = new Image();
+    img.src = lastState;
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+    };
+  });
   socket.on('draw', (data) => {
     drawOnCanvas(data);
   });
 
-  canvas.addEventListener('mousedown', startPosition);
+  canvas.addEventListener('mousedown', (e) => {
+    saveCanvasState(canvas, ctx);
+    startPosition(e);
+  });
   canvas.addEventListener('mouseup', endPosition);
   canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseleave', endPosition);
+  canvas.addEventListener('mouseout', endPosition);
+
+  resizeCanvas();
 });
 </script>
 
@@ -128,8 +201,8 @@ onMounted(() => {
     <div class="main-wrapper">
       <div class="left-wrapper">
         <div class="user-list-wrapper" style="position: relative;">
-            <img src="../assets/bg_rank.svg" alt="" class="user-list-img">
-            <usersTableComponent />
+          <img src="../assets/bg_rank.svg" alt="" class="user-list-img">
+          <usersTableComponent/>
         </div>
 
         <div class="answers" draggable="false">
@@ -154,28 +227,44 @@ onMounted(() => {
 
       <div class="tools-panel">
         <div class="colors" style="display: flex; justify-content: center">
-          <div class="one-color" @click="changeColor('black', $event)" style="background-color: black; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('white', $event)" style="background-color: white; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('red', $event)" style="background-color: red; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('orange', $event)" style="background-color: orange; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('yellow', $event)" style="background-color: yellow; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('green', $event)" style="background-color: #00ff00; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('Cyan', $event)" style="background-color: #00fffa; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('blue', $event)" style="background-color: blue; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('violet', $event)" style="background-color: violet; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('purple', $event)" style="background-color: purple; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('magenta', $event)" style="background-color: magenta; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('pink', $event)" style="background-color: pink; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('brown', $event)" style="background-color: brown; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
-          <div class="one-color" @click="changeColor('gray', $event)" style="background-color: gray; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('black', $event)"
+               style="background-color: black; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('white', $event)"
+               style="background-color: white; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('red', $event)"
+               style="background-color: red; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('orange', $event)"
+               style="background-color: orange; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('yellow', $event)"
+               style="background-color: yellow; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('green', $event)"
+               style="background-color: #00ff00; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('Cyan', $event)"
+               style="background-color: #00fffa; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('blue', $event)"
+               style="background-color: blue; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('violet', $event)"
+               style="background-color: violet; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('purple', $event)"
+               style="background-color: purple; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('magenta', $event)"
+               style="background-color: magenta; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('pink', $event)"
+               style="background-color: pink; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('brown', $event)"
+               style="background-color: brown; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('gray', $event)"
+               style="background-color: gray; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
         </div>
 
         <div class="brush-thickness" style="margin-top: 20px; user-select: none;" draggable="false">
           <label draggable="false" for="thicknessRange" style="text-align: center">Толщина</label>
-          <input draggable="false" id="thicknessRange" type="range" min="1" max="50" v-model="brushThickness" @input="changeThickness(brushThickness)" />
+          <input draggable="false" id="thicknessRange" type="range" min="1" max="50" v-model="brushThickness"
+                 @input="changeThickness(brushThickness)"/>
         </div>
         <div class="eraser" @click="activateEraser" style="user-select: none; cursor: pointer" draggable="false">
-          <img src="../assets/eraser.svg" alt="Eraser" class="eraser-icon" draggable="false" :style="{ filter: isEraserBlackedOut ? 'brightness(0.75)' : 'none' }" >
+          <img src="../assets/eraser.svg" alt="Eraser" class="eraser-icon" draggable="false"
+               :style="{ filter: isEraserBlackedOut ? 'brightness(0.75)' : 'none' }">
         </div>
       </div>
     </div>
@@ -184,12 +273,13 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.chat{
+.chat {
   padding: 10px;
 }
+
 .home-icon {
   position: absolute;
-  right:0;
+  right: 0;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -280,7 +370,7 @@ canvas {
   flex-direction: column;
 
   align-items: center;
-  background: white;
+  background: rgba(245, 245, 245, 0.92);
   border-radius: 20px;
   width: 150px;
   height: 100%;

@@ -23,6 +23,10 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('draw', data);
     });
 
+    socket.on('undo', (lastState) => {
+        socket.broadcast.emit('undo', lastState);
+    });
+
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });
