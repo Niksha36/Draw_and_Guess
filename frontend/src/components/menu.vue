@@ -1,12 +1,13 @@
 <script setup>
 import {useRouter} from 'vue-router';
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import '@fortawesome/fontawesome-free/css/all.css';
 import LoginComponent from './LoginComponent.vue';
-
+import { store } from '@/js/store.js';
 const router = useRouter();
 const showLogin = ref(false);
 
+<<<<<<< HEAD
 async function createRoom() {
   try { 
     const response = await axios.post('http://localhost:8000/api/create/', {   
@@ -23,11 +24,19 @@ async function createRoom() {
     }
   }
 }
+=======
+const username = computed(() => store.username);
+const buttonText = computed(() => (username.value ? 'Выйти' : 'Войти'));
+>>>>>>> 0829ddb888a081dd6fe91ee816b436f577848c7c
 
 function goToGame() {
   router.push('/game');
 }
 function logout() {
+  if (store.username != '') {
+    store.username = '';
+    return;
+  }
   showLogin.value = true;
 }
 function revertMenu() {
@@ -36,6 +45,10 @@ function revertMenu() {
 function goToRoom() {
 
   router.push('/room');
+}
+
+function goToScore() {
+  router.push('/score');
 }
 
 </script>
@@ -58,7 +71,7 @@ function goToRoom() {
             <img src="../assets/avatar.svg" alt="Avatar" class="avatar-img">
           </div>
           <button class="logout" @click="logout">
-            <i class="fas fa-sign-out-alt"></i> Выйти
+            <i class="fas fa-sign-out-alt"></i> {{ buttonText }}
           </button>
           <div class="button-play button" @click="goToGame">
             Играть
@@ -66,7 +79,12 @@ function goToRoom() {
           <div class="button-play button" @click="goToRoom()">
             Создать игру
           </div>
+          <div class="button-play button" @click="goToScore()">
+            Таблица счетов
         </div>
+        </div>
+        
+
         <LoginComponent v-else @login-success="revertMenu" :revert-menu="revertMenu"/>
       </div>
 
@@ -140,8 +158,8 @@ function goToRoom() {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 80%;
-  width: 60%
+  height: 78%;
+  width: 89%
 }
 
 .logout {

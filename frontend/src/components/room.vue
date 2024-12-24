@@ -1,28 +1,54 @@
 <script setup>
 import {ref} from 'vue';
 import {useRouter} from 'vue-router';
+import router from "@/router.js";
+
+function goToMenu() {
+  router.push('/');
+}
 </script>
 
 <template>
   <div class="background">
     <div class="wrapper">
-      <div class="left-wrapper">
-        <div class="text">ЧЕЛ. 1/14</div>
-        <div class="human-container"></div>
+      <div class="top-wrapper">
+        <div class="return-to-menu-btn" @click="goToMenu"></div>
       </div>
-      <div class="right-wrapper">
-        <div class="text">Тема</div>
-        <div class="theme-wrapper">
-          <div class="theme-container">
-            <div class="theme-text">Человек Паук</div>
+      <div class="bottom-wrapper">
+        <div class="left-wrapper">
+          <div class="text">ЧЕЛ. 1/14</div>
+          <div class="player-container">
+            <div class="player-card">
+              <div class="player-avatar"></div>
+              <div class="theme-text">НИКИТОСИК</div>
+            </div>
+            <div class="player-card"></div>
+            <div class="player-card"></div>
+            <div class="player-card"></div>
+            <div class="player-card"></div>
+            <div class="player-card"></div>
+            <div class="player-card"></div>
+            <div class="player-card"></div>
+            <div class="player-card"></div>
+            <div class="player-card"></div>
+            <div class="player-card"></div>
+            <div class="player-card"></div>
           </div>
-          <div class="theme-container"></div>
-          <div class="theme-container"></div>
-          <div class="theme-container"></div>
         </div>
-        <div class="buttons-wrapper">
-          <div class="button">Пригласить</div>
-          <div class="button">Играть</div>
+        <div class="right-wrapper">
+          <div class="text">Тема</div>
+          <div class="theme-wrapper">
+            <div class="theme-container">
+              <div class="theme-text">Человек Паук</div>
+            </div>
+            <div class="theme-container"></div>
+            <div class="theme-container"></div>
+            <div class="theme-container"></div>
+          </div>
+          <div class="buttons-wrapper">
+            <div class="button">Пригласить</div>
+            <div class="button">Играть</div>
+          </div>
         </div>
       </div>
     </div>
@@ -40,9 +66,8 @@ import {useRouter} from 'vue-router';
   padding: 20px;
   z-index: 2;
 }
-
 .wrapper {
-  border: 4px rgba(29, 29, 27, .15) solid;
+   border: 4px rgba(29, 29, 27, .15) solid;
   -webkit-box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
   -moz-box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
   box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
@@ -50,6 +75,33 @@ import {useRouter} from 'vue-router';
   background-color: rgba(255, 255, 255, 0);
   width: 70%;
   height: 80%;
+  display: flex;
+  border-radius: 15px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.top-wrapper {
+  margin-top: 20px;
+  width: 100%;
+  height: 10%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.return-to-menu-btn {
+  cursor: pointer;
+  margin: 20px;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  background: url("../assets/ic_home.svg")  no-repeat center center / cover, url("../assets/small_button_border.svg") no-repeat center center / cover;
+
+}
+
+.bottom-wrapper {
+  width: 100%;
+  height: 90%;
   display: flex;
   border-radius: 15px;
   justify-content: center;
@@ -65,7 +117,7 @@ import {useRouter} from 'vue-router';
   border-radius: 10px;
   width: 40%;
   height: 90%;
-  margin: 20px;
+  margin: 0 20px;
 }
 
 .text {
@@ -78,12 +130,52 @@ import {useRouter} from 'vue-router';
   text-align: center;
 }
 
-.human-container {
+.player-container {
+  overflow: auto;
   margin: 10px;
   display: flex;
   flex-direction: column;
   width: 90%;
   height: 90%;
+  gap: 10px
+}
+
+.player-container::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.player-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.player-container::-webkit-scrollbar-thumb {
+  background: #ff53a4;
+  border-radius: 10px;
+}
+
+.player-container::-webkit-scrollbar-thumb:hover {
+  background: rgb(38, 28, 92);
+}
+
+.player-card {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: white;
+  border-radius: 45px 10px 10px 45px;
+  width: 95%;
+  flex: 0 0 18%;
+  gap: 10px;
+}
+
+.player-avatar {
+  margin: 10px;
+  background-image: url("../assets/1.svg");
+  width: 20%;
+  height: 100%;
+  background-repeat: no-repeat;
 }
 
 .right-wrapper {
@@ -114,9 +206,11 @@ import {useRouter} from 'vue-router';
   border-radius: 10px;
   border: 5px solid rgb(255, 255, 255);
 }
+
 .theme-container:hover {
- border: 5px solid #ff53a4;
+  border: 5px solid #ff53a4;
 }
+
 .theme-text {
   font-weight: bold;
   font-size: 18px;
@@ -125,6 +219,7 @@ import {useRouter} from 'vue-router';
   text-align: center;
   text-transform: uppercase;
 }
+
 .buttons-wrapper {
   display: flex;
   justify-content: center;
@@ -146,7 +241,8 @@ import {useRouter} from 'vue-router';
   text-transform: uppercase;
   width: 40%;
 }
+
 .button:hover {
-    background-color: #89ffcc;
+  background-color: #89ffcc;
 }
 </style>
