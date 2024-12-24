@@ -60,7 +60,7 @@ function goToScore() {
             Создать игру
           </div>
           <div class="button-play button" @click="goToScore()">
-            Таблица счетов
+            Рейтинг
         </div>
         </div>
         
