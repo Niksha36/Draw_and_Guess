@@ -1,15 +1,30 @@
 <script setup>
-import { onMounted } from 'vue';
-import { messages, newMessage, fetchMessages, sendMessage } from '../js/chat.js';
+import { ref, onMounted } from 'vue';
+import { io } from 'socket.io-client';
+import {store} from "@/js/store.js";
 
-onMounted(fetchMessages);
+const socket = io('http://localhost:3000');
+const messages = ref([]);
+const newMessage = ref('');
+const user = store.username
+onMounted(() => {
+  socket.on('chatMessage', (message) => {
+    messages.value.push(message);
+  });
+});
+
+const sendMessage = () => {
+  if (newMessage.value.trim() === '') return;
+  socket.emit('chatMessage', { text: newMessage.value });
+  newMessage.value = '';
+};
 </script>
 
 <template>
   <div class="chat-wrapper">
     <div class="chat-messages">
       <div v-for="message in messages" :key="message.id" class="chat-message">
-        <strong class="chat-message-author">{{ message.author }}</strong>
+        <strong class="chat-message-author">{{ user }}</strong>
         <span class="chat-message-text">{{ message.text }}</span>
       </div>
     </div>

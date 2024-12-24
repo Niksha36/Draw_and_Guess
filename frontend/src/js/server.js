@@ -23,6 +23,14 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('draw', data);
     });
 
+    socket.on('chatMessage', (message) => {
+        io.emit('chatMessage', message); // Broadcast the message to all clients
+    });
+
+    socket.on('answerMessage', (message) => {
+        io.emit('answerMessage', message); // Broadcast the answer to all clients
+    });
+
     socket.on('undo', (lastState) => {
         socket.broadcast.emit('undo', lastState);
     });

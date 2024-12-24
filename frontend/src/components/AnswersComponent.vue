@@ -1,20 +1,35 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { messages, newMessage, fetchMessages, sendMessage } from '../js/chat.js';
-function isCorrectAnswer(message, answer) {
+import { io } from 'socket.io-client';
+import {store} from "@/js/store.js";
+
+const socket = io('http://localhost:3000');
+const messages = ref([]);
+const newMessage = ref('');
+const user = store.username
+onMounted(() => {
+  socket.on('answerMessage', (message) => {
+    messages.value.push(message);
+  });
+});
+
+const sendMessage = () => {
+  if (newMessage.value.trim() === '') return;
+  socket.emit('answerMessage', { text: newMessage.value });
+  newMessage.value = '';
+};
+
+const isCorrectAnswer = (message, answer) => {
   return message.text.toLowerCase() === answer;
-}
-onMounted(fetchMessages);
+};
 </script>
 
 <template>
   <div class="chat-wrapper">
     <div class="chat-messages">
-      <div class="chat-messages">
-        <div v-for="message in messages" :key="message.id" :class="{'chat-message': true, 'correct-answer': isCorrectAnswer(message)}">
-          <strong class="chat-message-author">{{ message.author }}</strong>
-          <span class="chat-message-text">{{ message.text }}</span>
-        </div>
+      <div v-for="message in messages" :key="message.id" :class="{'chat-message': true, 'correct-answer': isCorrectAnswer(message)}">
+        <strong class="chat-message-author">{{ user }}</strong>
+        <span class="chat-message-text">{{ message.text }}</span>
       </div>
     </div>
 
@@ -23,7 +38,7 @@ onMounted(fetchMessages);
           type="text"
           style="margin:0; user-select: none; height: 50px; margin-bottom: 2%;"
           class="chat-input-field"
-          placeholder="Чат здесь..."
+          placeholder="Отвечать тут..."
           v-model="newMessage"
           @keyup.enter="sendMessage"
       />

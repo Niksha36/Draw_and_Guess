@@ -48,18 +48,6 @@ const saveCanvasState = (canvas, ctx) => {
   canvasStates.value.push(dataUrl);
 };
 
-const undoLastAction = (canvas, ctx) => {
-  if (canvasStates.value.length > 0) {
-    const lastState = canvasStates.value.pop();
-    const img = new Image();
-    img.src = lastState;
-    img.onload = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
-    };
-  }
-};
-
 onMounted(() => {
   const canvas = document.getElementById('paintCanvas');
   const ctx = canvas.getContext('2d');
@@ -258,8 +246,8 @@ onMounted(() => {
         </div>
 
         <div class="brush-thickness" style="margin-top: 20px; user-select: none;" draggable="false">
-          <label draggable="false" for="thicknessRange" style="text-align: center">Толщина</label>
-          <input draggable="false" id="thicknessRange" type="range" min="1" max="50" v-model="brushThickness"
+          <label draggable="false" for="thicknessRange"  class="brush-thickness-text" style="text-align: center">Толщина</label>
+          <input style="color: #858585" draggable="false" id="thicknessRange" type="range" min="1" max="50" v-model="brushThickness"
                  @input="changeThickness(brushThickness)"/>
         </div>
         <div class="eraser" @click="activateEraser" style="user-select: none; cursor: pointer" draggable="false">
@@ -273,6 +261,22 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.brush-thickness-text{
+  font-weight: bold;
+  font-size: 18px;
+  color: #5cffb6;
+  text-shadow: rgb(23, 5, 87) 3px 0px 0px, rgb(23, 5, 87) 2.83487px .981584px 0px, rgb(23, 5, 87) 2.35766px 1.85511px 0px, rgb(23, 5, 87) 1.62091px 2.52441px 0px, rgb(23, 5, 87) .705713px 2.91581px 0px, rgb(23, 5, 87) -.287171px 2.98622px 0px, rgb(23, 5, 87) -1.24844px 2.72789px 0px, rgb(23, 5, 87) -2.07227px 2.16926px 0px, rgb(23, 5, 87) -2.66798px 1.37182px 0px, rgb(23, 5, 87) -2.96998px .42336px 0px, rgb(23, 5, 87) -2.94502px -.571704px 0px, rgb(23, 5, 87) -2.59586px -1.50383px 0px, rgb(23, 5, 87) -1.96093px -2.27041px 0px, rgb(23, 5, 87) -1.11013px -2.78704px 0px, rgb(23, 5, 87) -.137119px -2.99686px 0px, rgb(23, 5, 87) .850987px -2.87677px 0px, rgb(23, 5, 87) 1.74541px -2.43999px 0px, rgb(23, 5, 87) 2.44769px -1.73459px 0px, rgb(23, 5, 87) 2.88051px -.838247px 0px;
+  text-transform: uppercase;
+}
+#thicknessRange::-webkit-slider-runnable-track {
+  background: rgba(116, 84, 249);
+  height: 8px;
+  border-radius: 5px;
+}
+#thicknessRange::-webkit-slider-thumb {
+  background: #5cffb6;
+  border: 2.5px solid rgb(23, 5, 87)/* Change this to your desired color */
+}
 .chat {
   padding: 10px;
 }
