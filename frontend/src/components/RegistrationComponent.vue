@@ -1,11 +1,11 @@
 <script setup>
-
 import axios from "axios";
 import LoginComponent from "@/components/LoginComponent.vue";
 import {ref, defineProps} from "vue";
 import showPasswordIcon from "@/assets/show-password.svg";
 import hidePasswordIcon from "@/assets/hide-password.svg";
 import {store} from "@/js/store.js";
+
 const props = defineProps(['revertMenu']);
 const showLogin = ref(false); 
 const showPassword = ref(false); 
@@ -28,11 +28,13 @@ async function registerUser() {
   } 
 
   try { 
-    const response = await axios.post("/api/register/", { 
+    const response = await axios.post('/api/register/', { 
       username: username.value, 
       password: password.value, 
     });
+
     store.username = username.value;
+    store.userId = response.data.id;
     props.revertMenu();
   } catch (error) { 
     if (error.response && error.response.status === 400) {
