@@ -11,7 +11,7 @@ lerna-debug.log*
 venv
 __pycache__
 /backend/test_*
-/backend/db.sqlite3
+/backend/db.*
 
 
 node_modules

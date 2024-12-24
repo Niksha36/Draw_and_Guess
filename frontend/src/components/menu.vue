@@ -7,6 +7,23 @@ import LoginComponent from './LoginComponent.vue';
 const router = useRouter();
 const showLogin = ref(false);
 
+async function createRoom() {
+  try { 
+    const response = await axios.post('http://localhost:8000/api/create/', {   
+      roomname: ,
+    });
+    emit('login-success');
+  } catch (error) {
+    if (error.response && error.response.status === 400) {
+      const errors = error.response.data;
+      const errorMessages = Object.values(errors).flat(); 
+      alert(errorMessages);
+    } else {
+      alert("Ошибка при авторизации: Неизвестная ошибка");
+    }
+  }
+}
+
 function goToGame() {
   router.push('/game');
 }
@@ -17,6 +34,7 @@ function revertMenu() {
   showLogin.value = false;
 }
 function goToRoom() {
+
   router.push('/room');
 }
 
