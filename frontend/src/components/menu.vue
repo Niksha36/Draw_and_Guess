@@ -139,7 +139,7 @@ function goToScore() {
   justify-content: center;
   align-items: center;
   height: 78%;
-  width: 89%
+  width: 60%
 }
 
 .logout {
