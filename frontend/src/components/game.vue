@@ -126,6 +126,8 @@ onMounted(() => {
 
       <div class="tools-panel">
         <div class="colors" style="display: flex; justify-content: center">
+          <div class="one-color" @click="changeColor('black', $event)" style="background-color: black; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
+          <div class="one-color" @click="changeColor('white', $event)" style="background-color: white; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
           <div class="one-color" @click="changeColor('red', $event)" style="background-color: red; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
           <div class="one-color" @click="changeColor('orange', $event)" style="background-color: orange; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
           <div class="one-color" @click="changeColor('yellow', $event)" style="background-color: yellow; width: 30px; height: 30px; border-radius: 50%;cursor: pointer"></div>
