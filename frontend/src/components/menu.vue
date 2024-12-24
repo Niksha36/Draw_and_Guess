@@ -75,7 +75,7 @@ function goToScore() {
             Создать игру
           </div>
           <div class="button-play button" @click="goToScore()">
-            Таблица счетов
+            Рейтинг
         </div>
         </div>
         
@@ -154,7 +154,7 @@ function goToScore() {
   justify-content: center;
   align-items: center;
   height: 78%;
-  width: 89%
+  width: 60%
 }
 
 .logout {

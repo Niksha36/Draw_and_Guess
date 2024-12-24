@@ -13,6 +13,13 @@ function goToMenu() {
     <div class="wrapper">
       <div class="top-wrapper">
         <div class="return-to-menu-btn" @click="goToMenu"></div>
+        <div class="privacy-switcher-wrapper" style="background: rgba(38, 28, 92, .5); border-radius: 15px; padding: 10px; margin-right: 20px">
+          <label  style="color: #5cffb6; text-shadow: rgb(23, 5, 87) 3px 0px 0px, rgb(23, 5, 87) 2.83487px .981584px 0px, rgb(23, 5, 87) 2.35766px 1.85511px 0px, rgb(23, 5, 87) 1.62091px 2.52441px 0px, rgb(23, 5, 87) .705713px 2.91581px 0px, rgb(23, 5, 87) -.287171px 2.98622px 0px, rgb(23, 5, 87) -1.24844px 2.72789px 0px, rgb(23, 5, 87) -2.07227px 2.16926px 0px, rgb(23, 5, 87) -2.66798px 1.37182px 0px, rgb(23, 5, 87) -2.96998px .42336px 0px, rgb(23, 5, 87) -2.94502px -.571704px 0px, rgb(23, 5, 87) -2.59586px -1.50383px 0px, rgb(23, 5, 87) -1.96093px -2.27041px 0px, rgb(23, 5, 87) -1.11013px -2.78704px 0px, rgb(23, 5, 87) -.137119px -2.99686px 0px, rgb(23, 5, 87) .850987px -2.87677px 0px, rgb(23, 5, 87) 1.74541px -2.43999px 0px, rgb(23, 5, 87) 2.44769px -1.73459px 0px, rgb(23, 5, 87) 2.88051px -.838247px 0px;
+                  text-transform: uppercase; font-weight: bold">
+            <input name="terms" type="checkbox" role="switch"/>
+            Открытая комната
+          </label>
+        </div>
       </div>
       <div class="bottom-wrapper">
         <div class="left-wrapper">
@@ -55,7 +62,22 @@ function goToMenu() {
   </div>
 </template>
 
+
 <style scoped>
+.background {
+  user-select: none;
+}
+.background * {
+  user-select: none;
+}
+input[type="checkbox"]:checked {
+  background: #5cffb6;
+  border:none!important;
+}
+input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: none;
+}
 .background {
   background: url("../assets/textura.png") no-repeat center center / cover, linear-gradient(215deg, rgba(116, 84, 249) 0%, rgb(115, 17, 176) 85%);
   height: 100vh;
@@ -66,8 +88,9 @@ function goToMenu() {
   padding: 20px;
   z-index: 2;
 }
+
 .wrapper {
-   border: 4px rgba(29, 29, 27, .15) solid;
+  border: 4px rgba(29, 29, 27, .15) solid;
   -webkit-box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
   -moz-box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
   box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
@@ -81,12 +104,13 @@ function goToMenu() {
   align-items: center;
   flex-direction: column;
 }
+
 .top-wrapper {
   margin-top: 20px;
   width: 100%;
   height: 10%;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -95,7 +119,7 @@ function goToMenu() {
   margin: 20px;
   height: 100%;
   aspect-ratio: 1 / 1;
-  background: url("../assets/ic_home.svg")  no-repeat center center / cover, url("../assets/small_button_border.svg") no-repeat center center / cover;
+  background: url("../assets/ic_home.svg") no-repeat center center / cover, url("../assets/small_button_border.svg") no-repeat center center / cover;
 
 }
 
@@ -245,4 +269,5 @@ function goToMenu() {
 .button:hover {
   background-color: #89ffcc;
 }
+
 </style>
