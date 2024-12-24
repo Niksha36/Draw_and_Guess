@@ -48,7 +48,26 @@ const saveCanvasState = (canvas, ctx) => {
   canvasStates.value.push(dataUrl);
 };
 
+const progressValue = ref(0);
+let timer = null;
+
+const isDialogOpen = ref(true); // Reactive variable to control dialog visibility
+
+const startTimer = () => {
+  progressValue.value = 0;
+  isDialogOpen.value = false; // Hide the dialog
+  if (timer) clearInterval(timer);
+  timer = setInterval(() => {
+    if (progressValue.value < 100) {
+      progressValue.value += 3.33; // Increment by 3.33 to reach 100 in 30 seconds
+    } else {
+      clearInterval(timer);
+    }
+  }, 1000);
+};
 onMounted(() => {
+
+
   const canvas = document.getElementById('paintCanvas');
   const ctx = canvas.getContext('2d');
   let painting = false;
@@ -186,15 +205,15 @@ onMounted(() => {
 
 <template>
   <div class="background" draggable="false">
-    <dialog open>
-      <article class="dialog">
+    <dialog open v-if="isDialogOpen">
+      <article  class="dialog">
         <p>
           <strong class="text">Выберите тему</strong>
         </p>
-        <button class="button" style="margin: 5px; background-color: transparent; border: none">
+        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startTimer">
           Сок добрый
         </button>
-        <button class="button" style="margin: 5px; background-color: transparent; border: none">
+        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startTimer">
           Cок недобрый
         </button>
       </article>
@@ -224,6 +243,11 @@ onMounted(() => {
             <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
           </div>
         </div>
+        <div class="draw-time-wrapper" style="position: absolute; padding-left:3%; padding-right: 10%; display:flex; justify-content: space-between; align-items: center; bottom: 5%; z-index: 100;  width: 100%">
+          <img src="../assets/ic_time.svg" alt="time" width="10%">
+          <progress class="custom-progress" style="color: deeppink!important;margin: 0; width: 100%" :value="progressValue" max="100"></progress>
+        </div>
+
       </div>
 
       <div class="tools-panel">
@@ -276,6 +300,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.custom-progress::-webkit-progress-value {
+  background-color: deeppink;
+}
+
 .brush-thickness-text {
   font-weight: bold;
   font-size: 18px;
