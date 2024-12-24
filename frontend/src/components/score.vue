@@ -1,3 +1,25 @@
+<script>
+export default {
+  data() {
+    return {
+      players: [
+        { name: 'Игрок 1', score: 12345 },
+        { name: 'Игрок 2', score: 9876 },
+        { name: 'Игрок 3', score: 123 },
+        { name: 'Игрок 4', score: 4 },
+        { name: 'Игрок 4', score: 4 },
+        { name: 'Игрок 4', score: 4 },
+        { name: 'Игрок 4', score: 4 },
+        { name: 'Игрок 4', score: 4 },
+        { name: 'Игрок 4', score: 4 },
+        { name: 'Игрок 4', score: 4 },
+        
+      ]
+    };
+  },
+};
+</script>
+
 <template>
   <div class="scoreboard background">
     <div class="wrapper" >
@@ -22,28 +44,6 @@
     </div>
   </div>
 </template>
-
-<script>
-export default {
-  data() {
-    return {
-      players: [
-        { name: 'Игрок 1', score: 12345 },
-        { name: 'Игрок 2', score: 9876 },
-        { name: 'Игрок 3', score: 123 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        
-      ]
-    };
-  },
-};
-</script>
 
 <style scoped>
 .scoreboard {

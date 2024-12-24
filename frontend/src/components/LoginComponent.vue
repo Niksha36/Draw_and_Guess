@@ -1,6 +1,5 @@
 <script setup>
 import axios from 'axios';
-
 import showPasswordIcon from '../assets/show-password.svg';
 import hidePasswordIcon from '../assets/hide-password.svg';
 import RegistrationComponent from './RegistrationComponent.vue';
@@ -27,6 +26,8 @@ async function loginUser() {
       username: username.value,
       password: password.value,
     });
+
+    store.userId = response.data.id;
     store.username = username.value;
     emit('login-success');
   } catch (error) {

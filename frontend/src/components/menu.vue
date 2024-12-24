@@ -1,4 +1,5 @@
 <script setup>
+import axios from 'axios';
 import {useRouter} from 'vue-router';
 import {computed, ref} from "vue";
 import '@fortawesome/fontawesome-free/css/all.css';
@@ -6,29 +7,28 @@ import LoginComponent from './LoginComponent.vue';
 import { store } from '@/js/store.js';
 const router = useRouter();
 const showLogin = ref(false);
-
-<<<<<<< HEAD
-async function createRoom() {
-  try { 
-    const response = await axios.post('http://localhost:8000/api/create/', {   
-      roomname: ,
-    });
-    emit('login-success');
-  } catch (error) {
-    if (error.response && error.response.status === 400) {
-      const errors = error.response.data;
-      const errorMessages = Object.values(errors).flat(); 
-      alert(errorMessages);
-    } else {
-      alert("Ошибка при авторизации: Неизвестная ошибка");
-    }
-  }
-}
-=======
 const username = computed(() => store.username);
 const buttonText = computed(() => (username.value ? 'Выйти' : 'Войти'));
->>>>>>> 0829ddb888a081dd6fe91ee816b436f577848c7c
 
+
+async function goToRoom() {
+  try { 
+    if (store.username == '') {
+      showLogin.value = true;
+      return;
+    }
+
+    const response = await axios.post('http://localhost:8000/api/create/', {   
+      roomname: store.username,
+      painter: store.userId,
+    });
+
+    router.push(`/room/${response.data.id}`)
+  } catch (error) {
+    console.log(error)
+    alert("Ошибка при создании комнаты. Повторите позже");
+  }
+}
 function goToGame() {
   router.push('/game');
 }
@@ -42,11 +42,6 @@ function logout() {
 function revertMenu() {
   showLogin.value = false;
 }
-function goToRoom() {
-
-  router.push('/room');
-}
-
 function goToScore() {
   router.push('/score');
 }
