@@ -20,6 +20,10 @@ function goToRoom() {
   router.push('/room');
 }
 
+function goToScore() {
+  router.push('/score');
+}
+
 </script>
 
 <template>
@@ -48,7 +52,12 @@ function goToRoom() {
           <div class="button-play button" @click="goToRoom()">
             Создать игру
           </div>
+          <div class="button-play button" @click="goToScore()">
+            Таблица счетов
         </div>
+        </div>
+        
+
         <LoginComponent v-else @login-success="revertMenu" :revert-menu="revertMenu"/>
       </div>
 
@@ -122,8 +131,8 @@ function goToRoom() {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 80%;
-  width: 60%
+  height: 78%;
+  width: 89%
 }
 
 .logout {
