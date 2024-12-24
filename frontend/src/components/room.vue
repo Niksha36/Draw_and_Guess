@@ -88,8 +88,9 @@ input[type="checkbox"]:focus {
   padding: 20px;
   z-index: 2;
 }
+
 .wrapper {
-   border: 4px rgba(29, 29, 27, .15) solid;
+  border: 4px rgba(29, 29, 27, .15) solid;
   -webkit-box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
   -moz-box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
   box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
@@ -103,6 +104,7 @@ input[type="checkbox"]:focus {
   align-items: center;
   flex-direction: column;
 }
+
 .top-wrapper {
   margin-top: 20px;
   width: 100%;
@@ -117,7 +119,7 @@ input[type="checkbox"]:focus {
   margin: 20px;
   height: 100%;
   aspect-ratio: 1 / 1;
-  background: url("../assets/ic_home.svg")  no-repeat center center / cover, url("../assets/small_button_border.svg") no-repeat center center / cover;
+  background: url("../assets/ic_home.svg") no-repeat center center / cover, url("../assets/small_button_border.svg") no-repeat center center / cover;
 
 }
 
@@ -267,4 +269,5 @@ input[type="checkbox"]:focus {
 .button:hover {
   background-color: #89ffcc;
 }
+
 </style>
