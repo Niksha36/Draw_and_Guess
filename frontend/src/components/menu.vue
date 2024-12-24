@@ -17,8 +17,7 @@ const buttonText = computed(() => (username.value ? 'Выйти' : 'Войти')
 async function goToRoom() {
   try {
     if (store.username == '' || store.userId == '') {
-      showDialog.value = true
-      showLogin.value = true;
+      showDialog.value = true;
       return;
     }
     console.log("HDFHSDHFHSFHSFHFSDHh")
@@ -40,7 +39,7 @@ async function goToGame() {
   try {
     // Проверяем, авторизован ли пользователь
     if (store.username == '' || store.userId == '') {
-      showLogin.value = true;
+      showDialog.value = true;
       return;
     }
 
@@ -252,6 +251,7 @@ function goToScore() {
   margin-top: 20px;
   cursor: pointer;
   background-position: center;
+  box-shadow: none;
 }
 
 .button:hover {

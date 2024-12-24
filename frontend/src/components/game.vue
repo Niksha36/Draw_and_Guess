@@ -48,7 +48,26 @@ const saveCanvasState = (canvas, ctx) => {
   canvasStates.value.push(dataUrl);
 };
 
+const progressValue = ref(0);
+let timer = null;
+
+const isDialogOpen = ref(true); // Reactive variable to control dialog visibility
+
+const startTimer = () => {
+  progressValue.value = 0;
+  isDialogOpen.value = false; // Hide the dialog
+  if (timer) clearInterval(timer);
+  timer = setInterval(() => {
+    if (progressValue.value < 100) {
+      progressValue.value += 3.33; // Increment by 3.33 to reach 100 in 30 seconds
+    } else {
+      clearInterval(timer);
+    }
+  }, 1000);
+};
 onMounted(() => {
+
+
   const canvas = document.getElementById('paintCanvas');
   const ctx = canvas.getContext('2d');
   let painting = false;
@@ -186,6 +205,19 @@ onMounted(() => {
 
 <template>
   <div class="background" draggable="false">
+    <dialog open v-if="isDialogOpen">
+      <article  class="dialog">
+        <p>
+          <strong class="text">Выберите тему</strong>
+        </p>
+        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startTimer">
+          Сок добрый
+        </button>
+        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startTimer">
+          Cок недобрый
+        </button>
+      </article>
+    </dialog>
     <div class="main-wrapper">
       <div class="left-wrapper">
         <div class="user-list-wrapper" style="position: relative;">
@@ -211,6 +243,11 @@ onMounted(() => {
             <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
           </div>
         </div>
+        <div class="draw-time-wrapper" style="position: absolute; padding-left:3%; padding-right: 10%; display:flex; justify-content: space-between; align-items: center; bottom: 5%; z-index: 100;  width: 100%">
+          <img src="../assets/ic_time.svg" alt="time" width="10%">
+          <progress class="custom-progress" style="color: deeppink!important;margin: 0; width: 100%" :value="progressValue" max="100"></progress>
+        </div>
+
       </div>
 
       <div class="tools-panel">
@@ -246,8 +283,10 @@ onMounted(() => {
         </div>
 
         <div class="brush-thickness" style="margin-top: 20px; user-select: none;" draggable="false">
-          <label draggable="false" for="thicknessRange"  class="brush-thickness-text" style="text-align: center">Толщина</label>
-          <input style="color: #858585" draggable="false" id="thicknessRange" type="range" min="1" max="50" v-model="brushThickness"
+          <label draggable="false" for="thicknessRange" class="brush-thickness-text"
+                 style="text-align: center">Толщина</label>
+          <input style="color: #858585" draggable="false" id="thicknessRange" type="range" min="1" max="50"
+                 v-model="brushThickness"
                  @input="changeThickness(brushThickness)"/>
         </div>
         <div class="eraser" @click="activateEraser" style="user-select: none; cursor: pointer" draggable="false">
@@ -261,22 +300,29 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.brush-thickness-text{
+.custom-progress::-webkit-progress-value {
+  background-color: deeppink;
+}
+
+.brush-thickness-text {
   font-weight: bold;
   font-size: 18px;
   color: #5cffb6;
   text-shadow: rgb(23, 5, 87) 3px 0px 0px, rgb(23, 5, 87) 2.83487px .981584px 0px, rgb(23, 5, 87) 2.35766px 1.85511px 0px, rgb(23, 5, 87) 1.62091px 2.52441px 0px, rgb(23, 5, 87) .705713px 2.91581px 0px, rgb(23, 5, 87) -.287171px 2.98622px 0px, rgb(23, 5, 87) -1.24844px 2.72789px 0px, rgb(23, 5, 87) -2.07227px 2.16926px 0px, rgb(23, 5, 87) -2.66798px 1.37182px 0px, rgb(23, 5, 87) -2.96998px .42336px 0px, rgb(23, 5, 87) -2.94502px -.571704px 0px, rgb(23, 5, 87) -2.59586px -1.50383px 0px, rgb(23, 5, 87) -1.96093px -2.27041px 0px, rgb(23, 5, 87) -1.11013px -2.78704px 0px, rgb(23, 5, 87) -.137119px -2.99686px 0px, rgb(23, 5, 87) .850987px -2.87677px 0px, rgb(23, 5, 87) 1.74541px -2.43999px 0px, rgb(23, 5, 87) 2.44769px -1.73459px 0px, rgb(23, 5, 87) 2.88051px -.838247px 0px;
   text-transform: uppercase;
 }
+
 #thicknessRange::-webkit-slider-runnable-track {
   background: rgba(116, 84, 249);
   height: 8px;
   border-radius: 5px;
 }
+
 #thicknessRange::-webkit-slider-thumb {
   background: #5cffb6;
-  border: 2.5px solid rgb(23, 5, 87)/* Change this to your desired color */
+  border: 2.5px solid rgb(23, 5, 87) /* Change this to your desired color */
 }
+
 .chat {
   padding: 10px;
 }
@@ -288,17 +334,20 @@ onMounted(() => {
   left: 50%;
   transform: translate(-50%, -50%);
 }
-.user-list-img{
-  height: 100%!important;
-  width: 100%!important;
+
+.user-list-img {
+  height: 100% !important;
+  width: 100% !important;
 }
-.left-wrapper{
+
+.left-wrapper {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   background-size: 100% 100%;
 }
-.user-list-wrapper{
+
+.user-list-wrapper {
   min-height: 1px;
   /*
   background-image: url("../assets/bg_rank.svg");
@@ -308,8 +357,9 @@ onMounted(() => {
   height: 200px;
   width: 100%;
 }
+
 .background {
-  background-image: url("../assets/bg.svg") ;
+  background-image: url("../assets/bg.svg");
   background-color: #7361f7;
   height: 100vh;
   width: 100vw;
@@ -317,15 +367,18 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
 }
-.left-wrapper{
+
+.left-wrapper {
   width: 376px;
 }
+
 .answers {
   background: white;
   border-radius: 20px;
   height: 212px;
   padding: 10px;
 }
+
 .user-list-wrapper,
 .answers,
 .chat {
@@ -333,6 +386,7 @@ onMounted(() => {
   flex-grow: 1;
   margin-bottom: 2rem;
 }
+
 .chat {
   background: white;
   border-radius: 20px;
@@ -362,15 +416,17 @@ canvas {
   position: relative;
   z-index: 2;
 }
-.main-wrapper{
+
+.main-wrapper {
   display: flex;
   justify-content: space-between;
   width: 100%;
   height: 90%;
   padding: 0 10px;
 }
-.tools-panel{
-  display:flex;
+
+.tools-panel {
+  display: flex;
   flex-direction: column;
 
   align-items: center;
@@ -378,32 +434,80 @@ canvas {
   border-radius: 20px;
   width: 150px;
   height: 100%;
-  padding:10px 10px 10px 10px;
+  padding: 10px 10px 10px 10px;
 }
-.go-to-menu-icon{
-  position:absolute;
+
+.go-to-menu-icon {
+  position: absolute;
   display: block;
-  z-index:10;
+  z-index: 10;
   top: 5.2%;
-  left:3.5%;
+  left: 3.5%;
 }
+
 canvas {
   width: 100%;
   height: 100%;
-  position:absolute;
+  position: absolute;
   display: block;
-  z-index:10;
+  z-index: 10;
 }
-.colors{
+
+.colors {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   min-width: 10px;
   min-height: 10px;
 }
+
 .colors div {
   border-radius: 50%;
 }
+
+.dialog {
+  border-radius: 10px;
+  max-width: 400px;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.button {
+  background-image: url("../assets/button.svg");
+  width: 281px;
+  height: 66px;
+  border: none;
+  color: #ffd506;
+  text-shadow: rgb(23, 21, 86) 4px 0px 0px, rgb(23, 21, 86) 3.87565px .989616px 0px, rgb(23, 21, 86) 3.51033px 1.9177px 0px, rgb(23, 21, 86) 2.92676px 2.72656px 0px, rgb(23, 21, 86) 2.16121px 3.36588px 0px, rgb(23, 21, 86) 1.26129px 3.79594px 0px, rgb(23, 21, 86) .282949px 3.98998px 0px, rgb(23, 21, 86) -.712984px 3.93594px 0px, rgb(23, 21, 86) -1.66459px 3.63719px 0px, rgb(23, 21, 86) -2.51269px 3.11229px 0px, rgb(23, 21, 86) -3.20457px 2.39389px 0px, rgb(23, 21, 86) -3.69721px 1.52664px 0px, rgb(23, 21, 86) -3.95997px .56448px 0px, rgb(23, 21, 86) -3.97652px -.432781px 0px, rgb(23, 21, 86) -3.74583px -1.40313px 0px, rgb(23, 21, 86) -3.28224px -2.28625px 0px, rgb(23, 21, 86) -2.61457px -3.02721px 0px, rgb(23, 21, 86) -1.78435px -3.57996px 0px, rgb(23, 21, 86) -.843183px -3.91012px 0px, rgb(23, 21, 86) .150409px -3.99717px 0px, rgb(23, 21, 86) 1.13465px -3.8357px 0px, rgb(23, 21, 86) 2.04834px -3.43574px 0px, rgb(23, 21, 86) 2.83468px -2.82216px 0px, rgb(23, 21, 86) 3.44477px -2.03312px 0px, rgb(23, 21, 86) 3.84068px -1.11766px 0px, rgb(23, 21, 86) 3.9978px -.132717px 0px;
+  font-size: 24px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+  cursor: pointer;
+  background-position: center;
+  box-shadow: none;
+}
+
+.button:hover {
+  background-image: url("../assets/hover_button.svg");
+}
+
+.text {
+  margin: 10px;
+  font-weight: bold;
+  font-size: 22px;
+  color: #5cffb6;
+  text-shadow: rgb(23, 5, 87) 3px 0px 0px, rgb(23, 5, 87) 2.83487px .981584px 0px, rgb(23, 5, 87) 2.35766px 1.85511px 0px, rgb(23, 5, 87) 1.62091px 2.52441px 0px, rgb(23, 5, 87) .705713px 2.91581px 0px, rgb(23, 5, 87) -.287171px 2.98622px 0px, rgb(23, 5, 87) -1.24844px 2.72789px 0px, rgb(23, 5, 87) -2.07227px 2.16926px 0px, rgb(23, 5, 87) -2.66798px 1.37182px 0px, rgb(23, 5, 87) -2.96998px .42336px 0px, rgb(23, 5, 87) -2.94502px -.571704px 0px, rgb(23, 5, 87) -2.59586px -1.50383px 0px, rgb(23, 5, 87) -1.96093px -2.27041px 0px, rgb(23, 5, 87) -1.11013px -2.78704px 0px, rgb(23, 5, 87) -.137119px -2.99686px 0px, rgb(23, 5, 87) .850987px -2.87677px 0px, rgb(23, 5, 87) 1.74541px -2.43999px 0px, rgb(23, 5, 87) 2.44769px -1.73459px 0px, rgb(23, 5, 87) 2.88051px -.838247px 0px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
 @media (max-height: 460px) or (max-width: 770px) {
   .go-to-menu-icon {
     width: 20px;
@@ -412,27 +516,32 @@ canvas {
     justify-content: center;
     align-items: center;
   }
-  .tools-panel{
+
+  .tools-panel {
     padding: 5px;
   }
-  .one-color{
+
+  .one-color {
     width: 27px !important;
     height: 27px !important;
   }
 }
+
 @media (max-height: 352px) or (max-width: 770px) {
-  .one-color{
+  .one-color {
     width: 20px !important;
     height: 20px !important;
   }
 }
-@media (max-width: 1134px){
-  .left-wrapper{
+
+@media (max-width: 1134px) {
+  .left-wrapper {
     max-width: 200px
   }
 }
-@media (max-width: 700px){
-  .left-wrapper{
+
+@media (max-width: 700px) {
+  .left-wrapper {
     max-width: 150px
   }
 }
