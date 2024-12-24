@@ -196,14 +196,22 @@ function goToScore() {
     background-size: contain;
   }
 }
-
+@media (max-height: 543px) {
+  .button {
+    margin-top: 10px;
+    background-size: contain;
+    font-size: 18px;
+    width: 271px;
+    height: 40px;
+  }
+}
 @media (max-height: 460px) {
   .button {
     margin-top: 15px;
     background-size: contain;
     font-size: 18px;
     width: 271px;
-    height: 56px;
+    height: 40px;
   }
 
   .logout {

@@ -1,21 +1,27 @@
 <script setup>
 import usersTableComponent from './usersInGameTableComponent.vue';
-import chatComponent from './chatComponent.vue'
-import answersComponent from './AnswersComponent.vue'
-import { onMounted, ref } from 'vue';
+import chatComponent from './chatComponent.vue';
+import answersComponent from './AnswersComponent.vue';
+import {onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
+import {io} from 'socket.io-client';
+
 const selectedColor = ref(null);
 const currentColor = ref('black');
 const brushThickness = ref(5);
 const isEraserActive = ref(false);
 const isEraserBlackedOut = ref(false);
 const router = useRouter();
+const socket = io('http://localhost:3000'); // Initialize socket connection
+
 function goToMenu() {
   router.push('/');
 }
+
 const toggleEraserBlackout = () => {
   isEraserBlackedOut.value = !isEraserBlackedOut.value;
 };
+
 const changeColor = (color, event) => {
   if (selectedColor.value) {
     selectedColor.value.style.border = 'none';
@@ -32,19 +38,24 @@ const changeThickness = (thickness) => {
 
 const activateEraser = () => {
   isEraserActive.value = true;
-  toggleEraserBlackout()
+  toggleEraserBlackout();
 };
 
 onMounted(() => {
   const canvas = document.getElementById('paintCanvas');
   const ctx = canvas.getContext('2d');
   let painting = false;
+  let lastX = 0;
+  let lastY = 0;
 
   canvas.width = canvas.parentElement.clientWidth;
   canvas.height = canvas.parentElement.clientHeight;
 
   const startPosition = (e) => {
     painting = true;
+    const rect = canvas.getBoundingClientRect();
+    lastX = e.clientX - rect.left;
+    lastY = e.clientY - rect.top;
     draw(e);
   };
 
@@ -60,34 +71,51 @@ onMounted(() => {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    if (x < 60 || x > canvas.width - 60 || y < 60 || y > canvas.height - 60) {
-      endPosition()
-      startPosition()
+    const drawData = {
+      x,
+      y,
+      lastX,
+      lastY,
+      color: currentColor.value,
+      thickness: brushThickness.value,
+      isEraser: isEraserActive.value,
+    };
+
+    socket.emit('draw', drawData);
+
+    drawOnCanvas(drawData);
+
+    lastX = x;
+    lastY = y;
+  };
+
+  const drawOnCanvas = (data) => {
+    ctx.beginPath(); // Start a new path
+    ctx.moveTo(data.lastX, data.lastY); // Move to the last position
+
+    if (data.isEraser) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = data.thickness;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(0,0,0,1)';
+
+      ctx.lineTo(data.x, data.y);
+      ctx.stroke();
+      ctx.restore();
+    } else {
+      ctx.lineWidth = data.thickness;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = data.color;
+
+      ctx.lineTo(data.x, data.y);
+      ctx.stroke();
     }
+  };
 
-  if (isEraserActive.value) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.lineWidth = brushThickness.value;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = 'rgba(0,0,0,1)';
-
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.restore();
-  } else {
-    ctx.lineWidth = brushThickness.value;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = currentColor.value;
-
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-  }
-};
+  socket.on('draw', (data) => {
+    drawOnCanvas(data);
+  });
 
   canvas.addEventListener('mousedown', startPosition);
   canvas.addEventListener('mouseup', endPosition);
