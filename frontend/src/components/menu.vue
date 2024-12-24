@@ -13,24 +13,54 @@ const buttonText = computed(() => (username.value ? 'Выйти' : 'Войти')
 
 async function goToRoom() {
   try { 
-    if (store.username == '') {
+    if (store.username == '' || store.userId == '') {
       showLogin.value = true;
       return;
     }
 
-    const response = await axios.post('http://localhost:8000/api/create/', {   
+    const response = await axios.post('/api/create/', {   
       roomname: store.username,
       painter: store.userId,
+      owner: store.userId,
+      players: [],
     });
-
-    router.push(`/room/${response.data.id}`)
+    
+    store.roomId = response.data.id;
+    router.push(`/room/${response.data.id}`);
   } catch (error) {
-    console.log(error)
     alert("Ошибка при создании комнаты. Повторите позже");
   }
 }
-function goToGame() {
-  router.push('/game');
+async function goToGame() {
+  try {
+    // Проверяем, авторизован ли пользователь
+    if (store.username == '' || store.userId == '') {
+      showLogin.value = true;
+      return;
+    }
+
+    const response = await axios.get('/api/room/open/');
+    const openRoom = response.data; 
+
+    const playerData = {
+        id: store.userId,
+        username: store.username
+      };
+
+    if (openRoom) {
+      await axios.patch(`/api/room/${openRoom.id}/update/`, {
+        players: [playerData]
+      });
+      
+      store.roomId = openRoom.id;
+      router.push(`/room/${openRoom.id}`);
+    } else {
+      alert("Нет доступных комнат для игры.");
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Ошибка при присоединении к игре. Повторите позже.");
+  }
 }
 function logout() {
   if (store.username != '') {

@@ -1,25 +1,28 @@
 <script>
+import axios from "axios";
+
 export default {
   data() {
     return {
-      players: [
-        { name: 'Игрок 1', score: 12345 },
-        { name: 'Игрок 2', score: 9876 },
-        { name: 'Игрок 3', score: 123 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        
-      ]
+      users: [],
     };
+  },
+  created() {
+    this.fetchUsers();
+  },
+  methods: {
+    async fetchUsers() {
+      try {
+        const response = await axios.get('/api/users/');
+        this.users = response.data; 
+        console.log(this.users);
+      } catch (error) {
+        console.error("Error fetching users:", error); 
+      }
+    },
   },
 };
 </script>
-
 <template>
   <div class="scoreboard background">
     <div class="wrapper">
@@ -32,11 +35,11 @@ export default {
         </tr>
         </thead>
         <tbody>
-        <tr v-for="(player, index) in players" :key="index">
+        <tr v-for="(player, index) in users" :key="index">
           <td class="score-text">{{ index + 1 }}</td>
-          <td class="score-text">{{ player.name }}</td>
+          <td class="score-text">{{ player.username }}</td>
           <td class="score-text">{{
-              player.score.toLocaleString('en-US', {minimumIntegerDigits: 5, useGrouping: false})
+              player.winGames.toLocaleString('en-US', {minimumIntegerDigits: 5, useGrouping: false})
             }}
           </td>
         </tr>

@@ -1,11 +1,60 @@
 <script setup>
-import {ref} from 'vue';
+import {ref, onMounted, onBeforeUnmount} from 'vue';
 import {useRouter} from 'vue-router';
+import axios from 'axios';
 import router from "@/router.js";
+import {store} from "@/js/store.js";
 
-function goToMenu() {
-  router.push('/');
+
+const isOpen = ref(false);
+const selectedTopic = ref('Человек Паук');
+const intervalId = ref(null);
+const players = ref([]);
+
+async function fetchRoomData() {
+  try {
+    const response = await axios.get(`/api/room/${store.roomId}/`);
+    players.value = response.data.players;
+  } catch (error) {
+    console.error('Ошибка при получении данных комнаты:', error);
+  }
 }
+function updateRoom(theme) {
+    selectedTopic.value = theme;
+    
+    axios.patch(`/api/room/${store.roomId}/update/`, { 
+      is_private: !isOpen.value,
+      topic: selectedTopic.value,
+      user_id: store.userId, 
+    })
+        .catch(error => {
+            console.error('Ошибка:', error);
+        });
+}
+async function goToMenu() {
+  try {
+    if (store.username == '' || store.userId == '') {
+      showLogin.value = true;
+      return;
+    }
+
+    await axios.patch(`/api/room/${store.roomId}/exit/`, {
+      user_id: store.userId
+    });
+
+    router.push('/');
+  } catch (error) {
+    console.error(error);
+    alert("Ошибка при выходе из комнаты. Повторите позже.");
+  }
+}
+onMounted(() => {
+  fetchRoomData();
+  intervalId.value = setInterval(fetchRoomData, 5000);
+});
+onBeforeUnmount(() => {
+  clearInterval(intervalId.value);
+});
 </script>
 
 <template>
@@ -16,41 +65,31 @@ function goToMenu() {
         <div class="privacy-switcher-wrapper" style="background: rgba(38, 28, 92, .5); border-radius: 15px; padding: 10px; margin-right: 20px">
           <label  style="color: #5cffb6; text-shadow: rgb(23, 5, 87) 3px 0px 0px, rgb(23, 5, 87) 2.83487px .981584px 0px, rgb(23, 5, 87) 2.35766px 1.85511px 0px, rgb(23, 5, 87) 1.62091px 2.52441px 0px, rgb(23, 5, 87) .705713px 2.91581px 0px, rgb(23, 5, 87) -.287171px 2.98622px 0px, rgb(23, 5, 87) -1.24844px 2.72789px 0px, rgb(23, 5, 87) -2.07227px 2.16926px 0px, rgb(23, 5, 87) -2.66798px 1.37182px 0px, rgb(23, 5, 87) -2.96998px .42336px 0px, rgb(23, 5, 87) -2.94502px -.571704px 0px, rgb(23, 5, 87) -2.59586px -1.50383px 0px, rgb(23, 5, 87) -1.96093px -2.27041px 0px, rgb(23, 5, 87) -1.11013px -2.78704px 0px, rgb(23, 5, 87) -.137119px -2.99686px 0px, rgb(23, 5, 87) .850987px -2.87677px 0px, rgb(23, 5, 87) 1.74541px -2.43999px 0px, rgb(23, 5, 87) 2.44769px -1.73459px 0px, rgb(23, 5, 87) 2.88051px -.838247px 0px;
                   text-transform: uppercase; font-weight: bold">
-            <input name="terms" type="checkbox" role="switch"/>
+            <input name="terms" type="checkbox" role="switch" v-model="isOpen" @change="updateRoom(selectedTopic)" :checked="isOpen" />
             Открытая комната
           </label>
         </div>
       </div>
       <div class="bottom-wrapper">
         <div class="left-wrapper">
-          <div class="text">ЧЕЛ. 1/14</div>
+          <div class="text">ЧЕЛ. {{ players.length }}/14</div>
           <div class="player-container">
-            <div class="player-card">
+            <div class="player-card" v-for="player in players" :key="player.id">
               <div class="player-avatar"></div>
-              <div class="theme-text">НИКИТОСИК</div>
+              <div class="theme-text">{{ player.username }}</div>
             </div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
           </div>
         </div>
         <div class="right-wrapper">
           <div class="text">Тема</div>
           <div class="theme-wrapper">
-            <div class="theme-container">
-              <div class="theme-text">Человек Паук</div>
+            <div class="theme-container" 
+                v-for="theme in ['Человек Паук', 'Животные', 'Наука', 'Мультфильмы', 'Кино', 'Игры']" 
+                :key="theme" 
+                :class="{ 'selected': selectedTopic === theme }" 
+                @click="updateRoom(theme)">
+                <div class="theme-text">{{ theme }}</div>
             </div>
-            <div class="theme-container"></div>
-            <div class="theme-container"></div>
-            <div class="theme-container"></div>
           </div>
           <div class="buttons-wrapper">
             <div class="button">Пригласить</div>
@@ -229,6 +268,10 @@ input[type="checkbox"]:focus {
   height: 27%;
   border-radius: 10px;
   border: 5px solid rgb(255, 255, 255);
+}
+
+.theme-container.selected {
+    border: 5px solid #ff53a4;
 }
 
 .theme-container:hover {

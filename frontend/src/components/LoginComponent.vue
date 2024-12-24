@@ -22,7 +22,7 @@ function showRegistrationForm() {
 }
 async function loginUser() {
   try { 
-    const response = await axios.post('http://localhost:8000/api/login/', {   
+    const response = await axios.post('/api/login/', {   
       username: username.value,
       password: password.value,
     });
