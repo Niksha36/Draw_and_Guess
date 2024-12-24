@@ -1,16 +1,23 @@
 <script setup>
 import {useRouter} from 'vue-router';
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import '@fortawesome/fontawesome-free/css/all.css';
 import LoginComponent from './LoginComponent.vue';
-
+import { store } from '@/js/store.js';
 const router = useRouter();
 const showLogin = ref(false);
+
+const username = computed(() => store.username);
+const buttonText = computed(() => (username.value ? 'Выйти' : 'Войти'));
 
 function goToGame() {
   router.push('/game');
 }
 function logout() {
+  if (store.username != '') {
+    store.username = '';
+    return;
+  }
   showLogin.value = true;
 }
 function revertMenu() {
@@ -40,7 +47,7 @@ function goToRoom() {
             <img src="../assets/avatar.svg" alt="Avatar" class="avatar-img">
           </div>
           <button class="logout" @click="logout">
-            <i class="fas fa-sign-out-alt"></i> Выйти
+            <i class="fas fa-sign-out-alt"></i> {{ buttonText }}
           </button>
           <div class="button-play button" @click="goToGame">
             Играть
