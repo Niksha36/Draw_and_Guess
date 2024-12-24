@@ -13,15 +13,58 @@ const username = computed(() => store.username);
 const buttonText = computed(() => (username.value ? 'Выйти' : 'Войти'));
 
 
-function goToGame() {
-  if (store.username === '') {
-    showDialog.value = true
-  } else {
-    router.push('/game');
+async function goToRoom() {
+  try {
+    if (store.username == '' || store.userId == '') {
+      showDialog.value = true
+      showLogin.value = true;
+      return;
+    }
+
+    const response = await axios.post('/api/create/', {
+      roomname: store.username,
+      painter: store.userId,
+      owner: store.userId,
+      players: [],
+    });
+
+    store.roomId = response.data.id;
+    router.push(`/room/${response.data.id}`);
+  } catch (error) {
+    alert("Ошибка при создании комнаты. Повторите позже");
   }
-
 }
+async function goToGame() {
+  try {
+    // Проверяем, авторизован ли пользователь
+    if (store.username == '' || store.userId == '') {
+      showLogin.value = true;
+      return;
+    }
 
+    const response = await axios.get('/api/room/open/');
+    const openRoom = response.data;
+
+    const playerData = {
+        id: store.userId,
+        username: store.username
+      };
+
+    if (openRoom) {
+      await axios.patch(`/api/room/${openRoom.id}/update/`, {
+        players: [playerData]
+      });
+
+      store.roomId = openRoom.id;
+      router.push(`/room/${openRoom.id}`);
+    } else {
+      alert("Нет доступных комнат для игры.");
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Ошибка при присоединении к игре. Повторите позже.");
+  }
+}
 function logout() {
   if (store.username != '') {
     store.username = '';
@@ -29,7 +72,6 @@ function logout() {
   }
   showLogin.value = true;
 }
-
 function revertMenu() {
   showLogin.value = false;
 }
@@ -161,7 +203,6 @@ function goToScore() {
   justify-content: center;
   align-items: center;
 }
-
 .wrapper {
   position: absolute;
   display: flex;
@@ -249,7 +290,6 @@ function goToScore() {
     height: 40px;
   }
 }
-
 @media (max-height: 460px) {
   .button {
     margin-top: 15px;

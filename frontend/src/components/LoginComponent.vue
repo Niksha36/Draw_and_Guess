@@ -1,6 +1,5 @@
 <script setup>
 import axios from 'axios';
-
 import showPasswordIcon from '../assets/show-password.svg';
 import hidePasswordIcon from '../assets/hide-password.svg';
 import RegistrationComponent from './RegistrationComponent.vue';
@@ -23,10 +22,12 @@ function showRegistrationForm() {
 }
 async function loginUser() {
   try { 
-    const response = await axios.post('http://localhost:8000/api/login/', {   
+    const response = await axios.post('/api/login/', {   
       username: username.value,
       password: password.value,
     });
+
+    store.userId = response.data.id;
     store.username = username.value;
     emit('login-success');
   } catch (error) {
