@@ -2,10 +2,10 @@
 
 import axios from "axios";
 import LoginComponent from "@/components/LoginComponent.vue";
-import {ref} from "vue";
+import {ref, defineProps} from "vue";
 import showPasswordIcon from "@/assets/show-password.svg";
 import hidePasswordIcon from "@/assets/hide-password.svg";
-
+const props = defineProps(['revertMenu']);
 const showLogin = ref(false); 
 const showPassword = ref(false); 
 const username = ref(""); 
@@ -31,7 +31,8 @@ async function registerUser() {
       username: username.value, 
       password: password.value, 
     }); 
-    alert("Пользователь успешно зарегистрирован!"); 
+    alert("Пользователь успешно зарегистрирован!");
+    props.revertMenu();
   } catch (error) { 
     if (error.response && error.response.status === 400) {
       const errors = error.response.data;

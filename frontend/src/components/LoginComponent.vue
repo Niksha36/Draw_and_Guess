@@ -4,8 +4,10 @@ import axios from 'axios';
 import showPasswordIcon from '../assets/show-password.svg';
 import hidePasswordIcon from '../assets/hide-password.svg';
 import RegistrationComponent from './RegistrationComponent.vue';
-import {ref, defineEmits} from "vue";
+import {ref, defineEmits, defineProps} from "vue";
+import router from "@/router.js";
 
+const props = defineProps(['revertMenu']);
 const showPassword = ref(false);
 const username = ref(""); 
 const password = ref(""); 
@@ -18,7 +20,6 @@ function togglePassword() {
 function showRegistrationForm() {
   showRegistration.value = !showRegistration.value;
 }
-
 async function loginUser() {
   try { 
     const response = await axios.post('http://localhost:8000/api/login/', {   
@@ -26,7 +27,7 @@ async function loginUser() {
       password: password.value,
     });
     emit('login-success');
-  }  catch (error) { 
+  } catch (error) {
     if (error.response && error.response.status === 400) {
       const errors = error.response.data;
       const errorMessages = Object.values(errors).flat(); 
@@ -64,7 +65,7 @@ async function loginUser() {
   <button @click="loginUser" style="margin-top: 17px">Войти</button>
   <p style="margin:0; margin-top: 10px; font-size: 18px">Еще нет аккаунта? <a href="" @click.prevent = showRegistrationForm>Зарегистрироваться</a></p>
 </div>
-  <RegistrationComponent v-else />
+  <RegistrationComponent v-else :revert-menu="props.revertMenu"/>
 </template>
 
 <style scoped>

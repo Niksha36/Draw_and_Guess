@@ -45,12 +45,11 @@ function goToRoom() {
           <div class="button-play button" @click="goToGame">
             Играть
           </div>
-          <div class="button-play button"  @login-success="revertMenu" @click="goToRoom()">
+          <div class="button-play button" @click="goToRoom()">
             Создать игру
           </div>
         </div>
-        <LoginComponent v-else />
-
+        <LoginComponent v-else @login-success="revertMenu" :revert-menu="revertMenu"/>
       </div>
 
     </div>
