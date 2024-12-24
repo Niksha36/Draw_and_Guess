@@ -1,10 +1,10 @@
 <script setup>
-import {ref, onMounted, onBeforeUnmount} from 'vue';
-import {useRouter} from 'vue-router';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
-import router from "@/router.js";
-import {store} from "@/js/store.js";
-
+import { store } from "@/js/store.js";
+// Импортируйте сокеты, если они используются
+import { socket } from "@/js/socket.js"; // Предположим, что у вас есть файл для сокетов
 
 const isOpen = ref(false);
 const selectedTopic = ref();
@@ -15,9 +15,9 @@ const isOwner = ref(false);
 async function fetchRoomData() {
   try {
     const response = await axios.get(`/api/room/${store.roomId}/`);
-
     players.value = response.data.players;
     selectedTopic.value = response.data.topic;
+    isOpen.value = !response.data.is_private;
 
     if (Number(store.userId) == response.data.owner) {
       isOwner.value = true;
@@ -26,18 +26,36 @@ async function fetchRoomData() {
     console.error('Ошибка при получении данных комнаты:', error);
   }
 }
-function updateRoom(theme) {
-    selectedTopic.value = theme;
-    
-    axios.patch(`/api/room/${store.roomId}/update/`, { 
-      is_private: !isOpen.value,
-      topic: selectedTopic.value,
-      user_id: store.userId, 
-    })
-        .catch(error => {
-            console.error('Ошибка:', error);
-        });
+
+async function startGame() {
+  try {
+    if (!isOwner.value) {
+      return; // Если не владелец, ничего не делаем
+    }
+
+    // Уведомляем всех игроков о начале игры
+    socket.emit('startGame', { roomId: store.roomId });
+
+    // Перенаправляем всех игроков в комнату игры
+    router.push(`/game/${store.roomId}`);
+  } catch (error) {
+    console.error("Ошибка при начале игры:", error);
+  }
 }
+
+function updateRoom(theme) {
+  selectedTopic.value = theme;
+  
+  axios.patch(`/api/room/${store.roomId}/update/`, { 
+    is_private: !isOpen.value,
+    topic: selectedTopic.value,
+    user_id: store.userId, 
+  })
+  .catch(error => {
+    console.error('Ошибка:', error);
+  });
+}
+
 async function goToMenu() {
   try {
     if (store.username == '' || store.userId == '') {
@@ -55,10 +73,12 @@ async function goToMenu() {
     alert("Ошибка при выходе из комнаты. Повторите позже.");
   }
 }
+
 onMounted(() => {
   fetchRoomData();
   intervalId.value = setInterval(fetchRoomData, 500);
 });
+
 onBeforeUnmount(() => {
   clearInterval(intervalId.value);
 });

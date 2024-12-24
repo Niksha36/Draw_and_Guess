@@ -20,6 +20,7 @@ class RoomCreating(APIView):
     )
     def post(self, request):
         serializer = RoomSerializers(data=request.data)
+        print(serializer)
         if serializer.is_valid():
             room = serializer.save()
             return Response({"status": "Room created", "id": room.id}, status=status.HTTP_201_CREATED)

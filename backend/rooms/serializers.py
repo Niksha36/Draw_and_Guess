@@ -14,7 +14,9 @@ class RoomSerializers(serializers.ModelSerializer):
     
     class Meta:
         model = Room
-        fields = ['id', 'roomname', 'painter', 'owner', 'players', 'topic']
+        fields = ['id', 'roomname', 'painter', 
+                  'owner', 'players', 'topic',
+                  'is_private']
 
 
     def create(self, validated_data):

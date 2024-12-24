@@ -1,6 +1,7 @@
 <script setup>
 import {useRouter} from 'vue-router';
 import {computed, ref} from "vue";
+import axios from 'axios';
 import '@fortawesome/fontawesome-free/css/all.css';
 import LoginComponent from './LoginComponent.vue';
 import {store} from '@/js/store.js';
@@ -20,13 +21,14 @@ async function goToRoom() {
       showLogin.value = true;
       return;
     }
-
+    console.log("HDFHSDHFHSFHSFHFSDHh")
     const response = await axios.post('/api/create/', {
       roomname: store.username,
       painter: store.userId,
       owner: store.userId,
       players: [],
     });
+    console.log("HERHEHEHR")
 
     store.roomId = response.data.id;
     router.push(`/room/${response.data.id}`);
