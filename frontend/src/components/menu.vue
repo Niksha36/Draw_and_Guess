@@ -76,13 +76,6 @@ function revertMenu() {
   showLogin.value = false;
 }
 
-function goToRoom() {
-  if (store.username === '') {
-    showDialog.value = true
-  } else {
-    router.push('/room');
-  }
-}
 
 function goToScore() {
   router.push('/score');
