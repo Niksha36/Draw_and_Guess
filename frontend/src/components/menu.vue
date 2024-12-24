@@ -1,30 +1,33 @@
 <script setup>
-import axios from 'axios';
 import {useRouter} from 'vue-router';
 import {computed, ref} from "vue";
 import '@fortawesome/fontawesome-free/css/all.css';
 import LoginComponent from './LoginComponent.vue';
-import { store } from '@/js/store.js';
+import {store} from '@/js/store.js';
+
 const router = useRouter();
 const showLogin = ref(false);
+const showDialog = ref(false)
+
 const username = computed(() => store.username);
 const buttonText = computed(() => (username.value ? 'Выйти' : 'Войти'));
 
 
 async function goToRoom() {
-  try { 
+  try {
     if (store.username == '' || store.userId == '') {
+      showDialog.value = true
       showLogin.value = true;
       return;
     }
 
-    const response = await axios.post('/api/create/', {   
+    const response = await axios.post('/api/create/', {
       roomname: store.username,
       painter: store.userId,
       owner: store.userId,
       players: [],
     });
-    
+
     store.roomId = response.data.id;
     router.push(`/room/${response.data.id}`);
   } catch (error) {
@@ -40,7 +43,7 @@ async function goToGame() {
     }
 
     const response = await axios.get('/api/room/open/');
-    const openRoom = response.data; 
+    const openRoom = response.data;
 
     const playerData = {
         id: store.userId,
@@ -51,7 +54,7 @@ async function goToGame() {
       await axios.patch(`/api/room/${openRoom.id}/update/`, {
         players: [playerData]
       });
-      
+
       store.roomId = openRoom.id;
       router.push(`/room/${openRoom.id}`);
     } else {
@@ -72,6 +75,8 @@ function logout() {
 function revertMenu() {
   showLogin.value = false;
 }
+
+
 function goToScore() {
   router.push('/score');
 }
@@ -80,35 +85,45 @@ function goToScore() {
 
 <template>
   <div class="background">
-
+    <dialog v-if="showDialog" open>
+      <article class="dialog">
+        <p>
+          <strong>🔒 Вам нужно авторизоваться!</strong>
+          Для начала игры, пожалуйста, авторизуйтесь.
+        </p>
+        <button class="button" style="margin: 0; background-color: transparent; border: none"
+                @click="showDialog = false">Закрыть
+        </button>
+      </article>
+    </dialog>
     <div class="menu-wrapper">
       <img src="../assets/bg_content.svg" class="border-background-img" alt="">
-      <div  v-if="showLogin" class="go-to-menu-icon-wrapper" @click="revertMenu">
+      <div v-if="showLogin" class="go-to-menu-icon-wrapper" @click="revertMenu">
         <div class="go-to-menu-icon">
           <img src="../assets/small_button_border.svg" alt="border" class="home-border">
           <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
         </div>
       </div>
 
-      <div  class="wrapper">
-        <div v-if="!showLogin"  class="content">
+      <div class="wrapper">
+        <div v-if="!showLogin" class="content">
           <div class="avatar">
             <img src="../assets/avatar.svg" alt="Avatar" class="avatar-img">
           </div>
-          <button class="logout" @click="logout">
+          <button class="logout" style="border: none" @click="logout">
             <i class="fas fa-sign-out-alt"></i> {{ buttonText }}
           </button>
           <div class="button-play button" @click="goToGame">
             Играть
           </div>
-          <div class="button-play button" @click="goToRoom()">
+          <div class="button-play button" @click="goToRoom">
             Создать игру
           </div>
-          <div class="button-play button" @click="goToScore()">
+          <div class="button-play button" @click="goToScore">
             Рейтинг
+          </div>
         </div>
-        </div>
-        
+
 
         <LoginComponent v-else @login-success="revertMenu" :revert-menu="revertMenu"/>
       </div>
@@ -120,30 +135,34 @@ function goToScore() {
 </template>
 
 <style scoped>
-.border-background-img{
+.border-background-img {
   width: 100%;
   height: 100%;
 }
-.go-to-menu-icon-wrapper{
+
+.go-to-menu-icon-wrapper {
   cursor: pointer;
 }
-.menu-wrapper{
-  position:relative;
+
+.menu-wrapper {
+  position: relative;
 }
-.go-to-menu-icon-wrapper{
-  position:absolute;
+
+.go-to-menu-icon-wrapper {
+  position: absolute;
   top: 4.5%;
-  left:2.8%;
+  left: 2.8%;
 }
 
 .home-icon {
   position: absolute;
-  right:0;
+  right: 0;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
 
 }
+
 .background {
   background-image: url("../assets/bg.svg");
   background-color: #7361f7;
@@ -170,7 +189,7 @@ function goToScore() {
   align-items: center;
 }
 
-.content{
+.content {
   position: absolute;
   display: flex;
   flex-direction: column;
@@ -196,9 +215,11 @@ function goToScore() {
   background-color: #7361f7;
   box-shadow: 0px 6px 0px 0px #320067;
 }
+
 .logout:hover {
-  background-color:  #5a4db8 !important;
+  background-color: #5a4db8 !important;
 }
+
 .avatar {
   display: flex;
   justify-content: center;
@@ -235,12 +256,24 @@ function goToScore() {
   background-image: url("../assets/hover_button.svg");
 }
 
+.dialog {
+  border-radius: 10px;
+  max-width: 400px;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
 @media (max-height: 515px) {
   .button {
 
     background-size: contain;
   }
 }
+
 @media (max-height: 543px) {
   .button {
     margin-top: 10px;
@@ -295,4 +328,5 @@ function goToScore() {
     background-size: contain;
   }
 }
+
 </style>
