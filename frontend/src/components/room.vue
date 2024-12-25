@@ -1,36 +1,45 @@
 <script setup>
-import {ref, onMounted, onBeforeUnmount} from 'vue';
-import {useRouter} from 'vue-router';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
+import { store } from "@/js/store.js";
 import router from "@/router.js";
-import {store} from "@/js/store.js";
-
 
 const isOpen = ref(false);
-const selectedTopic = ref('Человек Паук');
+const selectedTopic = ref();
 const intervalId = ref(null);
 const players = ref([]);
+const isOwner = ref(false);
+const socket = ref(null);
 
 async function fetchRoomData() {
   try {
     const response = await axios.get(`/api/room/${store.roomId}/`);
     players.value = response.data.players;
+    selectedTopic.value = response.data.topic;
+    isOpen.value = !response.data.is_private;
+
+    if (Number(store.userId) == response.data.owner) {
+      isOwner.value = true;
+    } 
   } catch (error) {
     console.error('Ошибка при получении данных комнаты:', error);
   }
 }
+
 function updateRoom(theme) {
-    selectedTopic.value = theme;
-    
-    axios.patch(`/api/room/${store.roomId}/update/`, { 
-      is_private: !isOpen.value,
-      topic: selectedTopic.value,
-      user_id: store.userId, 
-    })
-        .catch(error => {
-            console.error('Ошибка:', error);
-        });
+  selectedTopic.value = theme;
+  
+  axios.patch(`/api/room/${store.roomId}/update/`, { 
+    is_private: !isOpen.value,
+    topic: selectedTopic.value,
+    user_id: store.userId, 
+  })
+  .catch(error => {
+    console.error('Ошибка:', error);
+  });
 }
+
 async function goToMenu() {
   try {
     if (store.username == '' || store.userId == '') {
@@ -48,12 +57,43 @@ async function goToMenu() {
     alert("Ошибка при выходе из комнаты. Повторите позже.");
   }
 }
+
+async function startGame() {
+  try {
+    socket.value.send(JSON.stringify({
+      action: 'start_game',
+      roomId: store.roomId
+    }));
+    router.push('/game')
+  } catch (error) {
+    console.error('Ошибка при начале игры:', error);
+    alert("Ошибка при начале игры. Повторите позже.");
+  }
+}
+
+function handleSocketMessage(event) {
+  console.log("Here")
+  const message = JSON.parse(event.data);
+  if (message.action === 'start_game' && message.roomId === store.roomId) {
+    router.push('/game');
+  }
+}
+
 onMounted(() => {
   fetchRoomData();
-  intervalId.value = setInterval(fetchRoomData, 5000);
+  console.log(isOwner.value)
+
+  socket.value = new WebSocket('ws://localhost:8081');
+  socket.value.onmessage = handleSocketMessage;
+
+  intervalId.value = setInterval(fetchRoomData, 500);
 });
+
 onBeforeUnmount(() => {
   clearInterval(intervalId.value);
+  if (socket.value) {
+    socket.value.close();
+  }
 });
 </script>
 
@@ -63,9 +103,8 @@ onBeforeUnmount(() => {
       <div class="top-wrapper">
         <div class="return-to-menu-btn" @click="goToMenu"></div>
         <div class="privacy-switcher-wrapper" style="background: rgba(38, 28, 92, .5); border-radius: 15px; padding: 10px; margin-right: 20px">
-          <label  style="color: #5cffb6; text-shadow: rgb(23, 5, 87) 3px 0px 0px, rgb(23, 5, 87) 2.83487px .981584px 0px, rgb(23, 5, 87) 2.35766px 1.85511px 0px, rgb(23, 5, 87) 1.62091px 2.52441px 0px, rgb(23, 5, 87) .705713px 2.91581px 0px, rgb(23, 5, 87) -.287171px 2.98622px 0px, rgb(23, 5, 87) -1.24844px 2.72789px 0px, rgb(23, 5, 87) -2.07227px 2.16926px 0px, rgb(23, 5, 87) -2.66798px 1.37182px 0px, rgb(23, 5, 87) -2.96998px .42336px 0px, rgb(23, 5, 87) -2.94502px -.571704px 0px, rgb(23, 5, 87) -2.59586px -1.50383px 0px, rgb(23, 5, 87) -1.96093px -2.27041px 0px, rgb(23, 5, 87) -1.11013px -2.78704px 0px, rgb(23, 5, 87) -.137119px -2.99686px 0px, rgb(23, 5, 87) .850987px -2.87677px 0px, rgb(23, 5, 87) 1.74541px -2.43999px 0px, rgb(23, 5, 87) 2.44769px -1.73459px 0px, rgb(23, 5, 87) 2.88051px -.838247px 0px;
-                  text-transform: uppercase; font-weight: bold">
-            <input name="terms" type="checkbox" role="switch" v-model="isOpen" @change="updateRoom(selectedTopic)" :checked="isOpen" />
+          <label style="color: #5cffb6; text-shadow: ...">
+            <input name="terms" type="checkbox" role="switch" v-model="isOpen" @change="updateRoom(selectedTopic)" :checked="isOpen" :disabled="!isOwner" />
             Открытая комната
           </label>
         </div>
@@ -86,14 +125,14 @@ onBeforeUnmount(() => {
             <div class="theme-container" 
                 v-for="theme in ['Человек Паук', 'Животные', 'Наука', 'Мультфильмы', 'Кино', 'Игры']" 
                 :key="theme" 
-                :class="{ 'selected': selectedTopic === theme }" 
-                @click="updateRoom(theme)">
+                :class="{ 'selected': selectedTopic === theme, 'disabled': !isOwner }" 
+                @click="isOwner ? updateRoom(theme) : null">
                 <div class="theme-text">{{ theme }}</div>
             </div>
           </div>
           <div class="buttons-wrapper">
-            <div class="button">Пригласить</div>
-            <div class="button">Играть</div>
+            <div class="button" :class="{ 'disabled': !isOwner }" @click="isOwner ? startGame() : null">Играть</div>
+            <div class="button" :class="{ 'disabled': !isOwner }">Пригласить</div>
           </div>
         </div>
       </div>
@@ -101,13 +140,16 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
-
 <style scoped>
 .background {
   user-select: none;
 }
 .background * {
   user-select: none;
+}
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 input[type="checkbox"]:checked {
   background: #5cffb6;

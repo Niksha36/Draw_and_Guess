@@ -20,10 +20,11 @@ class RoomCreating(APIView):
     )
     def post(self, request):
         serializer = RoomSerializers(data=request.data)
+        print(serializer)
         if serializer.is_valid():
             room = serializer.save()
             return Response({"status": "Room created", "id": room.id}, status=status.HTTP_201_CREATED)
-        
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
@@ -101,8 +102,11 @@ class RoomExit(APIView):
         if room.players.count() == 0:
             room.delete()
             return Response({"message": "Комната удалена, так как в ней больше нет игроков."}, status=status.HTTP_204_NO_CONTENT)
+        
+        if room.owner.id == int(user_id):
+            if room.players.count() > 0:
+                room.owner = room.players.first() 
+                room.save()
 
         serializer = RoomSerializers(room)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    
