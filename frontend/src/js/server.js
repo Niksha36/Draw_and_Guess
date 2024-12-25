@@ -22,7 +22,9 @@ io.on('connection', (socket) => {
     socket.on('draw', (data) => {
         socket.broadcast.emit('draw', data);
     });
-
+    socket.on('startGame', (data) => {
+        io.emit('startGame', data); // Broadcast the startGame event to all clients
+    });
     socket.on('chatMessage', (message) => {
         io.emit('chatMessage', message); // Broadcast the message to all clients
     });
