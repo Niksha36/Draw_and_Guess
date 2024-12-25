@@ -17,6 +17,7 @@ async function fetchRoomData() {
     const response = await axios.get(`/api/room/${store.roomId}/`);
     players.value = response.data.players;
     selectedTopic.value = response.data.topic;
+    console.log(response.data.topic)
     isOpen.value = !response.data.is_private;
 
     if (Number(store.userId) == response.data.owner) {
@@ -42,16 +43,8 @@ function updateRoom(theme) {
 
 async function goToMenu() {
   try {
-    if (store.username == '' || store.userId == '') {
-      showLogin.value = true;
-      return;
-    }
-
-    await axios.patch(`/api/room/${store.roomId}/exit/`, {
-      user_id: store.userId
-    });
-
-    router.push('/');
+    pathExit();
+    router.push("/");
   } catch (error) {
     console.error(error);
     alert("Ошибка при выходе из комнаты. Повторите позже.");
@@ -64,6 +57,7 @@ async function startGame() {
       action: 'start_game',
       roomId: store.roomId
     }));
+    pathExit();
     router.push('/game')
   } catch (error) {
     console.error('Ошибка при начале игры:', error);
@@ -78,6 +72,28 @@ function handleSocketMessage(event) {
     router.push('/game');
   }
 }
+
+async function pathExit() {
+  if (store.username == '' || store.userId == '') {
+    showLogin.value = true;
+    return;
+  }
+
+  await axios.patch(`/api/room/${store.roomId}/exit/`, {
+    user_id: store.userId});
+}
+
+window.addEventListener('beforeunload', (event) => {
+        event.preventDefault();
+        event.returnValue = '';
+        try {
+          pathExit();
+        } catch (error) {
+          console.error(error);
+          alert("Ошибка при выходе из комнаты. Повторите позже.");
+        }
+  }
+);
 
 onMounted(() => {
   fetchRoomData();
