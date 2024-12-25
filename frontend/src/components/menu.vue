@@ -20,14 +20,13 @@ async function goToRoom() {
       showDialog.value = true;
       return;
     }
-    console.log("HDFHSDHFHSFHSFHFSDHh")
+
     const response = await axios.post('/api/create/', {
       roomname: store.username,
       painter: store.userId,
       owner: store.userId,
       players: [],
     });
-    console.log("HERHEHEHR")
 
     store.roomId = response.data.id;
     router.push(`/room/${response.data.id}`);

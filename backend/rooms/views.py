@@ -24,7 +24,7 @@ class RoomCreating(APIView):
         if serializer.is_valid():
             room = serializer.save()
             return Response({"status": "Room created", "id": room.id}, status=status.HTTP_201_CREATED)
-        
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 

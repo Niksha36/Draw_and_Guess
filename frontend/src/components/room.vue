@@ -3,14 +3,14 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { store } from "@/js/store.js";
-// Импортируйте сокеты, если они используются
-import { socket } from "@/js/socket.js"; // Предположим, что у вас есть файл для сокетов
+import router from "@/router.js";
 
 const isOpen = ref(false);
 const selectedTopic = ref();
 const intervalId = ref(null);
 const players = ref([]);
 const isOwner = ref(false);
+const socket = ref(null);
 
 async function fetchRoomData() {
   try {
@@ -24,22 +24,6 @@ async function fetchRoomData() {
     } 
   } catch (error) {
     console.error('Ошибка при получении данных комнаты:', error);
-  }
-}
-
-async function startGame() {
-  try {
-    if (!isOwner.value) {
-      return; // Если не владелец, ничего не делаем
-    }
-
-    // Уведомляем всех игроков о начале игры
-    socket.emit('startGame', { roomId: store.roomId });
-
-    // Перенаправляем всех игроков в комнату игры
-    router.push(`/game/${store.roomId}`);
-  } catch (error) {
-    console.error("Ошибка при начале игры:", error);
   }
 }
 
@@ -74,13 +58,42 @@ async function goToMenu() {
   }
 }
 
+async function startGame() {
+  try {
+    socket.value.send(JSON.stringify({
+      action: 'start_game',
+      roomId: store.roomId
+    }));
+    router.push('/game')
+  } catch (error) {
+    console.error('Ошибка при начале игры:', error);
+    alert("Ошибка при начале игры. Повторите позже.");
+  }
+}
+
+function handleSocketMessage(event) {
+  console.log("Here")
+  const message = JSON.parse(event.data);
+  if (message.action === 'start_game' && message.roomId === store.roomId) {
+    router.push('/game');
+  }
+}
+
 onMounted(() => {
   fetchRoomData();
+  console.log(isOwner.value)
+
+  socket.value = new WebSocket('ws://localhost:8081');
+  socket.value.onmessage = handleSocketMessage;
+
   intervalId.value = setInterval(fetchRoomData, 500);
 });
 
 onBeforeUnmount(() => {
   clearInterval(intervalId.value);
+  if (socket.value) {
+    socket.value.close();
+  }
 });
 </script>
 
