@@ -4,6 +4,7 @@ import {computed, ref} from "vue";
 import '@fortawesome/fontawesome-free/css/all.css';
 import LoginComponent from './LoginComponent.vue';
 import {store} from '@/js/store.js';
+import axios from 'axios';
 
 const router = useRouter();
 const showLogin = ref(false);

@@ -6,10 +6,16 @@ import {store} from "@/js/store.js";
 const socket = io('http://localhost:3000');
 const messages = ref([]);
 const newMessage = ref('');
-const user = store.username
+const user = store.username;
+const correctAnswer = ref(''); // Add this line
+
 onMounted(() => {
   socket.on('answerMessage', (message) => {
     messages.value.push(message);
+  });
+
+  socket.on('correctAnswer', (answer) => { // Add this listener
+    correctAnswer.value = answer;
   });
 });
 
@@ -19,8 +25,12 @@ const sendMessage = () => {
   newMessage.value = '';
 };
 
-const isCorrectAnswer = (message, answer) => {
-  return message.text.toLowerCase() === answer;
+const isCorrectAnswer = (message) => {
+  const isCorrect = message.text.toLowerCase() === correctAnswer.value.toLowerCase();
+  console.log('User Input:', message.text);
+  console.log('Correct Answer:', correctAnswer.value);
+  console.log('Is Correct:', isCorrect);
+  return isCorrect;
 };
 </script>
 

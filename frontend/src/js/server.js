@@ -38,6 +38,9 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });
+    socket.on('startTimer', (answer) => {
+        io.emit('correctAnswer', answer); // Broadcast the correct answer to all clients
+    });
 });
 
 server.listen(3000, () => {
