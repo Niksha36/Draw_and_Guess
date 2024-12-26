@@ -7,8 +7,11 @@ import score from './components/score.vue';
 const routes = [
     { path: '/', component: Menu },
     { path: '/game', component: Game },
-    { path: '/room', component: Room },
     { path: '/score', component: score },
+    {
+    path: '/room/:id',
+    component: Room,
+    },
 ];
 
 const router = createRouter({

@@ -1,11 +1,88 @@
 <script setup>
-import {ref} from 'vue';
-import {useRouter} from 'vue-router';
-import router from "@/router.js";
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
+import { store } from "@/js/store.js";
+import { io } from 'socket.io-client';
 
-function goToMenu() {
-  router.push('/');
+const isOpen = ref(false);
+const selectedTopic = ref();
+const intervalId = ref(null);
+const players = ref([]);
+const isOwner = ref(false);
+const socket = ref(null);
+const router = useRouter();
+async function fetchRoomData() {
+  try {
+    const response = await axios.get(`/api/room/${store.roomId}/`);
+    players.value = response.data.players;
+    selectedTopic.value = response.data.topic;
+    isOpen.value = !response.data.is_private;
+
+    if (Number(store.userId) == response.data.owner) {
+      isOwner.value = true;
+    }
+  } catch (error) {
+    console.error('Ошибка при получении данных комнаты:', error);
+  }
 }
+
+function updateRoom(theme) {
+  selectedTopic.value = theme;
+
+  axios.patch(`/api/room/${store.roomId}/update/`, {
+    is_private: !isOpen.value,
+    topic: selectedTopic.value,
+    user_id: store.userId,
+  })
+      .catch(error => {
+        console.error('Ошибка:', error);
+      });
+}
+
+async function goToMenu() {
+  try {
+    if (store.username == '' || store.userId == '') {
+      showLogin.value = true;
+      return;
+    }
+
+    await axios.patch(`/api/room/${store.roomId}/exit/`, {
+      user_id: store.userId
+    });
+
+    router.push('/');
+  } catch (error) {
+    console.error(error);
+    alert("Ошибка при выходе из комнаты. Повторите позже.");
+  }
+}
+
+async function startGame() {
+  try {
+    socket.value.emit('startGame', store.roomId);
+  } catch (error) {
+    console.error('Ошибка при начале игры:', error);
+    alert("Ошибка при начале игры. Повторите позже.");
+  }
+}
+
+onMounted(() => {
+  fetchRoomData();
+  socket.value = io('http://localhost:3000');
+  socket.value.on('startGame', () => {
+    router.push('/game');
+  });
+
+  intervalId.value = setInterval(fetchRoomData, 500);
+});
+
+onBeforeUnmount(() => {
+  clearInterval(intervalId.value);
+  if (socket.value) {
+    socket.value.close();
+  }
+});
 </script>
 
 <template>
@@ -13,41 +90,37 @@ function goToMenu() {
     <div class="wrapper">
       <div class="top-wrapper">
         <div class="return-to-menu-btn" @click="goToMenu"></div>
+        <div class="privacy-switcher-wrapper" style="background: rgba(38, 28, 92, .5); border-radius: 15px; padding: 10px; margin-right: 20px">
+          <label style="color: #5cffb6; text-shadow: ...">
+            <input name="terms" type="checkbox" role="switch" v-model="isOpen" @change="updateRoom(selectedTopic)" :checked="isOpen" :disabled="!isOwner" />
+            Открытая комната
+          </label>
+        </div>
       </div>
       <div class="bottom-wrapper">
         <div class="left-wrapper">
-          <div class="text">ЧЕЛ. 1/14</div>
+          <div class="text">ЧЕЛ. {{ players.length }}/14</div>
           <div class="player-container">
-            <div class="player-card">
+            <div class="player-card" v-for="player in players" :key="player.id">
               <div class="player-avatar"></div>
-              <div class="theme-text">НИКИТОСИК</div>
+              <div class="theme-text">{{ player.username }}</div>
             </div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
-            <div class="player-card"></div>
           </div>
         </div>
         <div class="right-wrapper">
           <div class="text">Тема</div>
           <div class="theme-wrapper">
-            <div class="theme-container">
-              <div class="theme-text">Человек Паук</div>
+            <div class="theme-container"
+                 v-for="theme in ['Человек Паук', 'Животные', 'Наука', 'Мультфильмы', 'Кино', 'Игры']"
+                 :key="theme"
+                 :class="{ 'selected': selectedTopic === theme, 'disabled': !isOwner }"
+                 @click="isOwner ? updateRoom(theme) : null">
+              <div class="theme-text">{{ theme }}</div>
             </div>
-            <div class="theme-container"></div>
-            <div class="theme-container"></div>
-            <div class="theme-container"></div>
           </div>
           <div class="buttons-wrapper">
-            <div class="button">Пригласить</div>
-            <div class="button">Играть</div>
+            <div class="button" :class="{ 'disabled': !isOwner }" @click="isOwner ? startGame() : null">Играть</div>
+            <div class="button" :class="{ 'disabled': !isOwner }">Пригласить</div>
           </div>
         </div>
       </div>
@@ -56,6 +129,24 @@ function goToMenu() {
 </template>
 
 <style scoped>
+.background {
+  user-select: none;
+}
+.background * {
+  user-select: none;
+}
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+input[type="checkbox"]:checked {
+  background: #5cffb6;
+  border:none!important;
+}
+input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: none;
+}
 .background {
   background: url("../assets/textura.png") no-repeat center center / cover, linear-gradient(215deg, rgba(116, 84, 249) 0%, rgb(115, 17, 176) 85%);
   height: 100vh;
@@ -66,8 +157,9 @@ function goToMenu() {
   padding: 20px;
   z-index: 2;
 }
+
 .wrapper {
-   border: 4px rgba(29, 29, 27, .15) solid;
+  border: 4px rgba(29, 29, 27, .15) solid;
   -webkit-box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
   -moz-box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
   box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
@@ -81,12 +173,13 @@ function goToMenu() {
   align-items: center;
   flex-direction: column;
 }
+
 .top-wrapper {
   margin-top: 20px;
   width: 100%;
   height: 10%;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -95,7 +188,7 @@ function goToMenu() {
   margin: 20px;
   height: 100%;
   aspect-ratio: 1 / 1;
-  background: url("../assets/ic_home.svg")  no-repeat center center / cover, url("../assets/small_button_border.svg") no-repeat center center / cover;
+  background: url("../assets/ic_home.svg") no-repeat center center / cover, url("../assets/small_button_border.svg") no-repeat center center / cover;
 
 }
 
@@ -207,6 +300,10 @@ function goToMenu() {
   border: 5px solid rgb(255, 255, 255);
 }
 
+.theme-container.selected {
+  border: 5px solid #ff53a4;
+}
+
 .theme-container:hover {
   border: 5px solid #ff53a4;
 }
@@ -245,4 +342,5 @@ function goToMenu() {
 .button:hover {
   background-color: #89ffcc;
 }
+
 </style>

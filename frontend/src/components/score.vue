@@ -1,51 +1,78 @@
+<script>
+import axios from "axios";
+import {useRouter} from 'vue-router';
+
+export default {
+  setup() {
+    const router = useRouter();
+    return { router };
+  },
+  data() {
+    return {
+      users: [],
+    };
+  },
+  created() {
+    this.fetchUsers();
+  },
+  methods: {
+    async fetchUsers() {
+      try {
+        const response = await axios.get('/api/users/');
+        this.users = response.data;
+        console.log(this.users);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    },
+    goToMenu() {
+      this.router.push('/');
+    },
+  },
+};
+</script>
 <template>
   <div class="scoreboard background">
-    <div class="wrapper" >
-      <div class="left-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th class="header-text">Место</th>
-              <th class="header-text">Имя игрока</th>
-              <th class="header-text">Рекорд</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(player, index) in players" :key="index">
-              <td class="score-text">{{ index + 1 }}</td>
-              <td class="score-text">{{ player.name }}</td>
-              <td class="score-text">{{ player.score.toLocaleString('en-US', { minimumIntegerDigits: 5, useGrouping: false }) }}</td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="wrapper" style="position: relative">
+      <div class="go-to-menu-icon" @click="goToMenu"  style="position: absolute; top: -8.5%; left: 0%; padding:2px; cursor: pointer; ">
+        <img src="../assets/small_button_border.svg" alt="border" class="home-border">
+        <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
       </div>
+      <table>
+        <thead>
+        <tr>
+          <th class="header-text">Место</th>
+          <th class="header-text">Имя игрока</th>
+          <th class="header-text">Рекорд</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="(player, index) in users" :key="index">
+          <td class="score-text">{{ index + 1 }}</td>
+          <td class="score-text">{{ player.username }}</td>
+          <td class="score-text">{{
+              player.winGames.toLocaleString('en-US', {minimumIntegerDigits: 5, useGrouping: false})
+            }}
+          </td>
+        </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      players: [
-        { name: 'Игрок 1', score: 12345 },
-        { name: 'Игрок 2', score: 9876 },
-        { name: 'Игрок 3', score: 123 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        { name: 'Игрок 4', score: 4 },
-        
-      ]
-    };
-  },
-};
-</script>
-
 <style scoped>
+.go-to-menu-icon{
+  position: relative;
+}
+.home-icon {
+  position: absolute;
+  right:0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+}
 .scoreboard {
   background: url("../assets/textura.png") no-repeat center center / cover, linear-gradient(215deg, rgba(116, 84, 249) 0%, rgb(115, 17, 176) 85%);
   height: 100vh;
@@ -55,6 +82,7 @@ export default {
   justify-content: center;
   padding: 20px;
 }
+
 .wrapper {
   border: 4px rgba(29, 29, 27, .15) solid;
   -webkit-box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
@@ -63,38 +91,33 @@ export default {
   -webkit-border-radius: 12px;
   background-color: rgba(255, 255, 255, 0);
   width: 70%;
-  height: 76%;
-  
-  border-radius: 15px;
-  
-}
-.left-wrapper {
+  height: 80%;
   display: flex;
- 
-  flex-direction: column;
-  justify-content: flex-start;
+  border-radius: 15px;
   align-items: center;
-  border-radius: 10px;
-  
-  margin: 20px;
+  justify-content: center;
+
 }
+
 table {
-  width: 100%;
-  border-collapse: collapse;
-  color: white; 
+  border-radius: 10px;
+  width: 95%;
+  height: 90%;
+  border-spacing: 15px 0px;
+  border-collapse: separate;
   margin: 10px;
+
 }
 
 th, td {
   padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
   text-align: center;
 }
 
 th {
   background-color: rgba(38, 28, 92, .5);
+  border: none;
 }
-
 
 
 .header-text {
@@ -112,7 +135,6 @@ th {
   font-weight: bold;
   font-size: 18px;
   color: #301a6b;
-  box-shadow: 0px 6px 0px 0px #301a6b;
   text-align: center;
   text-transform: uppercase;
 }

@@ -1,11 +1,11 @@
 <script setup>
 import axios from 'axios';
-
 import showPasswordIcon from '../assets/show-password.svg';
 import hidePasswordIcon from '../assets/hide-password.svg';
 import RegistrationComponent from './RegistrationComponent.vue';
 import {ref, defineEmits, defineProps} from "vue";
 import router from "@/router.js";
+import {store} from "@/js/store.js";
 
 const props = defineProps(['revertMenu']);
 const showPassword = ref(false);
@@ -22,10 +22,13 @@ function showRegistrationForm() {
 }
 async function loginUser() {
   try { 
-    const response = await axios.post('http://localhost:8000/api/login/', {   
+    const response = await axios.post('/api/login/', {   
       username: username.value,
       password: password.value,
     });
+
+    store.userId = response.data.id;
+    store.username = username.value;
     emit('login-success');
   } catch (error) {
     if (error.response && error.response.status === 400) {
