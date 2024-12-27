@@ -3,7 +3,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { store } from "@/js/store.js";
-import router from "@/router.js";
+import { io } from 'socket.io-client';
 
 const isOpen = ref(false);
 const selectedTopic = ref();
@@ -11,7 +11,7 @@ const intervalId = ref(null);
 const players = ref([]);
 const isOwner = ref(false);
 const socket = ref(null);
-
+const router = useRouter();
 async function fetchRoomData() {
   try {
     const response = await axios.get(`/api/room/${store.roomId}/`);
@@ -22,7 +22,7 @@ async function fetchRoomData() {
 
     if (Number(store.userId) == response.data.owner) {
       isOwner.value = true;
-    } 
+    }
   } catch (error) {
     console.error('Ошибка при получении данных комнаты:', error);
   }
@@ -30,15 +30,15 @@ async function fetchRoomData() {
 
 function updateRoom(theme) {
   selectedTopic.value = theme;
-  
-  axios.patch(`/api/room/${store.roomId}/update/`, { 
+
+  axios.patch(`/api/room/${store.roomId}/update/`, {
     is_private: !isOpen.value,
     topic: selectedTopic.value,
-    user_id: store.userId, 
+    user_id: store.userId,
   })
-  .catch(error => {
-    console.error('Ошибка:', error);
-  });
+      .catch(error => {
+        console.error('Ошибка:', error);
+      });
 }
 
 async function goToMenu() {
@@ -53,12 +53,7 @@ async function goToMenu() {
 
 async function startGame() {
   try {
-    socket.value.send(JSON.stringify({
-      action: 'start_game',
-      roomId: store.roomId
-    }));
-    pathExit();
-    router.push('/game')
+    socket.value.emit('startGame', store.roomId);
   } catch (error) {
     console.error('Ошибка при начале игры:', error);
     alert("Ошибка при начале игры. Повторите позже.");
@@ -73,37 +68,6 @@ function handleSocketMessage(event) {
   }
 }
 
-async function pathExit() {
-  if (store.username == '' || store.userId == '') {
-    showLogin.value = true;
-    return;
-  }
-
-  await axios.patch(`/api/room/${store.roomId}/exit/`, {
-    user_id: store.userId});
-}
-
-window.addEventListener('beforeunload', (event) => {
-        event.preventDefault();
-        event.returnValue = '';
-        try {
-          pathExit();
-        } catch (error) {
-          console.error(error);
-          alert("Ошибка при выходе из комнаты. Повторите позже.");
-        }
-  }
-);
-
-onMounted(() => {
-  fetchRoomData();
-  console.log(isOwner.value)
-
-  socket.value = new WebSocket('ws://localhost:8081');
-  socket.value.onmessage = handleSocketMessage;
-
-  intervalId.value = setInterval(fetchRoomData, 500);
-});
 
 onBeforeUnmount(() => {
   clearInterval(intervalId.value);
@@ -138,12 +102,12 @@ onBeforeUnmount(() => {
         <div class="right-wrapper">
           <div class="text">Тема</div>
           <div class="theme-wrapper">
-            <div class="theme-container" 
-                v-for="theme in ['Человек Паук', 'Животные', 'Наука', 'Мультфильмы', 'Кино', 'Игры']" 
-                :key="theme" 
-                :class="{ 'selected': selectedTopic === theme, 'disabled': !isOwner }" 
-                @click="isOwner ? updateRoom(theme) : null">
-                <div class="theme-text">{{ theme }}</div>
+            <div class="theme-container"
+                 v-for="theme in ['Человек Паук', 'Животные', 'Наука', 'Мультфильмы', 'Кино', 'Игры']"
+                 :key="theme"
+                 :class="{ 'selected': selectedTopic === theme, 'disabled': !isOwner }"
+                 @click="isOwner ? updateRoom(theme) : null">
+              <div class="theme-text">{{ theme }}</div>
             </div>
           </div>
           <div class="buttons-wrapper">
@@ -329,7 +293,7 @@ input[type="checkbox"]:focus {
 }
 
 .theme-container.selected {
-    border: 5px solid #ff53a4;
+  border: 5px solid #ff53a4;
 }
 
 .theme-container:hover {
