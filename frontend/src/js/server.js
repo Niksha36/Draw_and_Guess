@@ -7,13 +7,13 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:5173', // Replace with your frontend URL
+        origin: 'http://localhost:5173',
         methods: ['GET', 'POST']
     }
 });
 
 app.use(cors({
-    origin: 'http://localhost:5173' // Replace with your frontend URL
+    origin: 'http://localhost:5173'
 }));
 
 io.on('connection', (socket) => {
@@ -23,14 +23,14 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('draw', data);
     });
     socket.on('startGame', (data) => {
-        io.emit('startGame', data); // Broadcast the startGame event to all clients
+        io.emit('startGame', data);
     });
-    socket.on('chatMessage', (message) => {
-        io.emit('chatMessage', message); // Broadcast the message to all clients
+    socket.on('chatMessage', ({ userName, message }) => {
+        io.emit('chatMessage', { userName,  text:message });
     });
 
-    socket.on('answerMessage', (message) => {
-        io.emit('answerMessage', message); // Broadcast the answer to all clients
+    socket.on('answerMessage', ({ userName, answer}) => {
+        io.emit('answerMessage', {userName, answer});
     });
 
     socket.on('undo', (lastState) => {
@@ -41,7 +41,11 @@ io.on('connection', (socket) => {
         console.log('user disconnected');
     });
     socket.on('startTimer', (answer) => {
-        io.emit('correctAnswer', answer); // Broadcast the correct answer to all clients
+        io.emit('correctAnswer', answer);
+    });
+
+    socket.on('getOwnerName', (ownerName) => {
+        io.emit('getOwnerName', ownerName)
     });
 });
 
