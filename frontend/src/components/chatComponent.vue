@@ -15,16 +15,16 @@ onMounted(() => {
 
 const sendMessage = () => {
   if (newMessage.value.trim() === '') return;
-  socket.emit('chatMessage', { text: newMessage.value });
+  socket.emit('chatMessage', { userName: user, message: newMessage.value });
   newMessage.value = '';
 };
 </script>
 
 <template>
   <div class="chat-wrapper">
-    <div class="chat-messages">
+    <div class="chat-messages" style="overflow-y:auto; height: 100%">
       <div v-for="message in messages" :key="message.id" class="chat-message">
-        <strong class="chat-message-author">{{ user }}</strong>
+        <strong class="chat-message-author">{{ message.userName }}</strong>
         <span class="chat-message-text">{{ message.text }}</span>
       </div>
     </div>

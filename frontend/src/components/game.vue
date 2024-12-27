@@ -14,7 +14,7 @@ const isEraserBlackedOut = ref(false);
 const router = useRouter();
 const socket = io('http://localhost:3000');
 const canvasStates = ref([]);
-const correctAnswer = ref(''); // Add this line
+
 
 function goToMenu() {
   router.push('/');
@@ -54,7 +54,6 @@ let timer = null;
 const isDialogOpen = ref(true); // Reactive variable to control dialog visibility
 
 const startTimer = (answer) => { // Modify this function
-  correctAnswer.value = answer; // Set the correct answer
   progressValue.value = 0;
   isDialogOpen.value = false;
   if (timer) clearInterval(timer);
@@ -65,7 +64,8 @@ const startTimer = (answer) => { // Modify this function
       clearInterval(timer);
     }
   }, 1000);
-  socket.emit('startTimer', answer);
+  console.log(answer.toLowerCase())
+  socket.emit('startTimer', answer.toLowerCase());
 };
 onMounted(() => {
 
@@ -212,10 +212,10 @@ onMounted(() => {
         <p>
           <strong class="text">Выберите тему</strong>
         </p>
-        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startTimer('Cок добрый')">
+        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startTimer('Сок добрый')">
           Сок добрый
         </button>
-        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startTimer('Cок недобрый')">
+        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startTimer('Сок недобрый')">
           Cок недобрый
         </button>
       </article>

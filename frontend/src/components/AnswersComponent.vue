@@ -14,20 +14,20 @@ onMounted(() => {
     messages.value.push(message);
   });
 
-  socket.on('correctAnswer', (answer) => { // Add this listener
+  socket.on('correctAnswer', (answer) => {
     correctAnswer.value = answer;
   });
 });
 
 const sendMessage = () => {
   if (newMessage.value.trim() === '') return;
-  socket.emit('answerMessage', { text: newMessage.value });
+  socket.emit('answerMessage', { userName: user, answer: newMessage.value });
   newMessage.value = '';
 };
 
 const isCorrectAnswer = (message) => {
-  const isCorrect = message.text.toLowerCase() === correctAnswer.value.toLowerCase();
-  console.log('User Input:', message.text);
+  const isCorrect = message.answer.toLowerCase() === correctAnswer.value;
+  console.log('User Input:', message.answer.toLowerCase());
   console.log('Correct Answer:', correctAnswer.value);
   console.log('Is Correct:', isCorrect);
   return isCorrect;
@@ -36,10 +36,10 @@ const isCorrectAnswer = (message) => {
 
 <template>
   <div class="chat-wrapper">
-    <div class="chat-messages">
+    <div class="chat-messages" style="overflow-y:auto; height: 100%">
       <div v-for="message in messages" :key="message.id" :class="{'chat-message': true, 'correct-answer': isCorrectAnswer(message)}">
-        <strong class="chat-message-author">{{ user }}</strong>
-        <span class="chat-message-text">{{ message.text }}</span>
+        <strong class="chat-message-author">{{ message.userName }}</strong>
+        <span class="chat-message-text">{{ message.answer }}</span>
       </div>
     </div>
 
