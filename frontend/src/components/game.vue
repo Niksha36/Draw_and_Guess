@@ -227,12 +227,18 @@ onMounted(() => {
           <usersTableComponent/>
         </div>
 
-        <div class="answers" draggable="false">
+        <div class="answers" draggable="false" style="position: relative;">
           <answers-component/>
+          <div class="chat-banner">
+            <span>Ответы</span>
+          </div>
         </div>
 
-        <div class="chat" draggable="false">
+        <div class="chat" draggable="false" style="position: relative;">
           <chatComponent/>
+          <div class="chat-banner">
+            <span>Чат</span>
+          </div>
         </div>
       </div>
 
@@ -300,8 +306,28 @@ onMounted(() => {
   </div>
 
 </template>
+<style>
+:root {
+  --text-shadow: rgb(23, 5, 87) 3px 0px 0px, rgb(23, 5, 87) 2.83487px .981584px 0px, rgb(23, 5, 87) 2.35766px 1.85511px 0px, rgb(23, 5, 87) 1.62091px 2.52441px 0px, rgb(23, 5, 87) .705713px 2.91581px 0px, rgb(23, 5, 87) -.287171px 2.98622px 0px, rgb(23, 5, 87) -1.24844px 2.72789px 0px, rgb(23, 5, 87) -2.07227px 2.16926px 0px, rgb(23, 5, 87) -2.66798px 1.37182px 0px, rgb(23, 5, 87) -2.96998px .42336px 0px, rgb(23, 5, 87) -2.94502px -.571704px 0px, rgb(23, 5, 87) -2.59586px -1.50383px 0px, rgb(23, 5, 87) -1.96093px -2.27041px 0px, rgb(23, 5, 87) -1.11013px -2.78704px 0px, rgb(23, 5, 87) -.137119px -2.99686px 0px, rgb(23, 5, 87) .850987px -2.87677px 0px, rgb(23, 5, 87) 1.74541px -2.43999px 0px, rgb(23, 5, 87) 2.44769px -1.73459px 0px, rgb(23, 5, 87) 2.88051px -.838247px 0px;
+}
+</style>
 
 <style scoped>
+.chat-banner{
+  position: absolute;
+  padding:1.5% 0;
+  width: 40%;
+  top: -12%;
+  text-transform: uppercase;
+  text-align: center;
+  box-shadow: 0px 6px 0px 0px #301a6b;
+  background: deeppink;
+  border-radius: 7px;
+  color: #5cffb6;
+  font-weight: bold;
+  right:0;
+  text-shadow: var(--text-shadow);
+}
 .custom-progress::-webkit-progress-value {
   background-color: deeppink;
 }
@@ -310,7 +336,7 @@ onMounted(() => {
   font-weight: bold;
   font-size: 18px;
   color: #5cffb6;
-  text-shadow: rgb(23, 5, 87) 3px 0px 0px, rgb(23, 5, 87) 2.83487px .981584px 0px, rgb(23, 5, 87) 2.35766px 1.85511px 0px, rgb(23, 5, 87) 1.62091px 2.52441px 0px, rgb(23, 5, 87) .705713px 2.91581px 0px, rgb(23, 5, 87) -.287171px 2.98622px 0px, rgb(23, 5, 87) -1.24844px 2.72789px 0px, rgb(23, 5, 87) -2.07227px 2.16926px 0px, rgb(23, 5, 87) -2.66798px 1.37182px 0px, rgb(23, 5, 87) -2.96998px .42336px 0px, rgb(23, 5, 87) -2.94502px -.571704px 0px, rgb(23, 5, 87) -2.59586px -1.50383px 0px, rgb(23, 5, 87) -1.96093px -2.27041px 0px, rgb(23, 5, 87) -1.11013px -2.78704px 0px, rgb(23, 5, 87) -.137119px -2.99686px 0px, rgb(23, 5, 87) .850987px -2.87677px 0px, rgb(23, 5, 87) 1.74541px -2.43999px 0px, rgb(23, 5, 87) 2.44769px -1.73459px 0px, rgb(23, 5, 87) 2.88051px -.838247px 0px;
+  text-shadow: var(--text-shadow);
   text-transform: uppercase;
 }
 
@@ -379,6 +405,8 @@ onMounted(() => {
   border-radius: 20px;
   height: 212px;
   padding: 10px;
+  padding-top:6%;
+  box-shadow: 0 4px 8px rgb(93, 205, 255), 0 6px 20px rgb(93, 205, 255);
 }
 
 .user-list-wrapper,
@@ -394,6 +422,8 @@ onMounted(() => {
   border-radius: 20px;
   height: 212px;
   margin-bottom: 0px;
+  padding-top:6%;
+  box-shadow: 0 4px 8px rgb(93, 205, 255), 0 6px 20px rgb(93, 205, 255);
 }
 
 .paint-board-wrapper {
