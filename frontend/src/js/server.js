@@ -48,7 +48,7 @@ io.on('connection', (socket) => {
         io.emit('getOwnerName', ownerName)
     });
 
-    socket.value.on('startNextRound', () => {
+    socket.on('startNextRound', () => {
         io.emit('startNextRound')
     });
 });
