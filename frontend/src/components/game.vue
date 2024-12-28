@@ -2,6 +2,8 @@
 import usersTableComponent from './usersInGameTableComponent.vue';
 import chatComponent from './chatComponent.vue';
 import answersComponent from './AnswersComponent.vue';
+import axios from 'axios';
+import { store } from "@/js/store.js";
 import {onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {io} from 'socket.io-client';
@@ -14,10 +16,51 @@ const isEraserBlackedOut = ref(false);
 const router = useRouter();
 const socket = io('http://localhost:3000');
 const canvasStates = ref([]);
+const isDialogOpen = ref(false); 
+const words = ['слово1', 'слово2']; 
+const isPainter = ref(false);
+const currentWord = ref(''); 
+const progressValue = ref(0);
+let timer = null;
 
 
 function goToMenu() {
   router.push('/');
+}
+
+async function changePainter() {
+  const response = await axios.get(`/api/room/${store.roomId}/`);
+  isPainter.value = response.data.painter == store.userId;
+  console.log(response.data, store.userId)
+
+  if (isPainter.value) {
+    isDialogOpen.value = true;
+  }
+}
+
+async function startNextRound() {
+  isDialogOpen.value = false;
+  startTimer();
+
+  if (isPainter.value) {
+    await axios.post(`/api/room/${store.roomId}/round`);
+    socket.emit('startNextRound');
+  }
+}
+
+function startTimer() {
+  progressValue.value = 0;
+  isDialogOpen.value = false;
+  
+  if (timer) clearInterval(timer);
+  timer = setInterval(() => {
+    if (progressValue.value < 100) {
+      progressValue.value += 3.33;
+    } else {
+      clearInterval(timer);
+      changePainter();
+    }
+  }, 1000);
 }
 
 const toggleEraserBlackout = () => {
@@ -48,27 +91,12 @@ const saveCanvasState = (canvas, ctx) => {
   canvasStates.value.push(dataUrl);
 };
 
-const progressValue = ref(0);
-let timer = null;
-
-const isDialogOpen = ref(true); // Reactive variable to control dialog visibility
-
-const startTimer = (answer) => { // Modify this function
-  progressValue.value = 0;
-  isDialogOpen.value = false;
-  if (timer) clearInterval(timer);
-  timer = setInterval(() => {
-    if (progressValue.value < 100) {
-      progressValue.value += 3.33;
-    } else {
-      clearInterval(timer);
-    }
-  }, 1000);
-  console.log(answer.toLowerCase())
-  socket.emit('startTimer', answer.toLowerCase());
-};
 onMounted(() => {
+  socket.on('startNextRound', () => {
+    startTimer();
+  });
 
+  changePainter();
 
   const canvas = document.getElementById('paintCanvas');
   const ctx = canvas.getContext('2d');
@@ -85,7 +113,6 @@ onMounted(() => {
 
     canvas.width = canvas.parentElement.clientWidth;
     canvas.height = canvas.parentElement.clientHeight;
-
     ctx.drawImage(tempCanvas, 0, 0);
   };
 
@@ -212,10 +239,10 @@ onMounted(() => {
         <p>
           <strong class="text">Выберите тему</strong>
         </p>
-        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startTimer('Сок добрый')">
+        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startNextRound">
           Сок добрый
         </button>
-        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startTimer('Сок недобрый')">
+        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startNextRound">
           Cок недобрый
         </button>
       </article>

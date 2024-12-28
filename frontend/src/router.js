@@ -6,12 +6,9 @@ import score from './components/score.vue';
 
 const routes = [
     { path: '/', component: Menu },
-    { path: '/game', component: Game },
+    { path: '/room/:id/game', component: Game },
     { path: '/score', component: score },
-    {
-    path: '/room/:id',
-    component: Room,
-    },
+    { path: '/room/:id', component: Room,},
 ];
 
 const router = createRouter({

@@ -47,6 +47,10 @@ io.on('connection', (socket) => {
     socket.on('getOwnerName', (ownerName) => {
         io.emit('getOwnerName', ownerName)
     });
+
+    socket.value.on('startNextRound', () => {
+        io.emit('startNextRound')
+    });
 });
 
 server.listen(3000, () => {

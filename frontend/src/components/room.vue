@@ -12,12 +12,12 @@ const players = ref([]);
 const isOwner = ref(false);
 const socket = ref(null);
 const router = useRouter();
+
 async function fetchRoomData() {
   try {
     const response = await axios.get(`/api/room/${store.roomId}/`);
     players.value = response.data.players;
     selectedTopic.value = response.data.topic;
-    console.log(response.data.topic)
     isOpen.value = !response.data.is_private;
 
     if (Number(store.userId) == response.data.owner) {
@@ -43,8 +43,16 @@ function updateRoom(theme) {
 
 async function goToMenu() {
   try {
-    pathExit();
-    router.push("/");
+    if (store.username == '' || store.userId == '') {
+      showLogin.value = true;
+      return;
+    }
+
+    await axios.patch(`/api/room/${store.roomId}/exit/`, {
+      user_id: store.userId
+    });
+
+    router.push('/');
   } catch (error) {
     console.error(error);
     alert("Ошибка при выходе из комнаты. Повторите позже.");
@@ -60,14 +68,15 @@ async function startGame() {
   }
 }
 
-function handleSocketMessage(event) {
-  console.log("Here")
-  const message = JSON.parse(event.data);
-  if (message.action === 'start_game' && message.roomId === store.roomId) {
-    router.push('/game');
-  }
-}
+onMounted(() => {
+  fetchRoomData();
+  socket.value = io('http://localhost:3000');
+  socket.value.on('startGame', () => {
+    router.push(`/room/${store.roomId}/game`);
+  });
 
+  intervalId.value = setInterval(fetchRoomData, 500);
+});
 
 onBeforeUnmount(() => {
   clearInterval(intervalId.value);
