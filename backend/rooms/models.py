@@ -7,7 +7,7 @@ class Room(models.Model):
     players = models.ManyToManyField(User, related_name='participating_rooms')
     owner =  models.ForeignKey(User, on_delete=models.CASCADE)
     roomname = models.CharField(max_length=255)
-    topic = models.CharField(max_length=255, default='Человек паук')
+    topic = models.CharField(max_length=255, default='Человек Паук')
     is_private = models.BooleanField(default=True)
 
     def __str__(self):

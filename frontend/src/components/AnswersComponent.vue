@@ -10,6 +10,7 @@ const user = store.username;
 const correctAnswer = ref(''); // Add this line
 
 onMounted(() => {
+  socket.emit('joinRoom', store.roomId);
   socket.on('answerMessage', (message) => {
     messages.value.push(message);
   });

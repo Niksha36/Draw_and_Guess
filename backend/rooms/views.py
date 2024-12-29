@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Count
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+import random
     
 
 class RoomCreating(APIView):
@@ -20,11 +21,10 @@ class RoomCreating(APIView):
     )
     def post(self, request):
         serializer = RoomSerializers(data=request.data)
-        print(serializer)
         if serializer.is_valid():
             room = serializer.save()
             return Response({"status": "Room created", "id": room.id}, status=status.HTTP_201_CREATED)
-        print(serializer.errors)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
@@ -93,6 +93,7 @@ class RoomExit(APIView):
         except Room.DoesNotExist:
             return Response({"error": "Комната не найдена"}, status=status.HTTP_404_NOT_FOUND)
 
+
         user_id = request.data.get('user_id')
         if user_id is None:
             return Response({"error": "Не указан user_id"}, status=status.HTTP_400_BAD_REQUEST)
@@ -110,3 +111,19 @@ class RoomExit(APIView):
 
         serializer = RoomSerializers(room)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class RoundUpdate(APIView):
+    def post(self, request, room_id):
+        try:
+            room = Room.objects.get(id=room_id)
+        except Room.DoesNotExist:
+            return Response({"error": "Комната не найдена"}, status=status.HTTP_404_NOT_FOUND)
+        
+        room.painter = random.choice(room.players.all())
+
+        room.save()
+        serializer = RoomSerializers(room)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
