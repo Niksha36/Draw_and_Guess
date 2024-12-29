@@ -8,6 +8,7 @@ const messages = ref([]);
 const newMessage = ref('');
 const user = store.username
 onMounted(() => {
+  socket.emit('joinRoom', store.roomId);
   socket.on('chatMessage', (message) => {
     messages.value.push(message);
   });

@@ -66,7 +66,7 @@ async function loginUser() {
   </div>
 
   <button @click="loginUser" style="margin-top: 17px">Войти</button>
-  <p style="margin:0; margin-top: 10px; font-size: 18px">Еще нет аккаунта? <a href="" @click.prevent = showRegistrationForm>Зарегистрироваться</a></p>
+  <p style="text-align: center; margin:0; margin-top: 10px; font-size: 18px">Еще нет аккаунта? <a href="" @click.prevent = showRegistrationForm>Зарегистрироваться</a></p>
 </div>
   <RegistrationComponent v-else :revert-menu="props.revertMenu"/>
 </template>

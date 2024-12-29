@@ -92,6 +92,7 @@ const saveCanvasState = (canvas, ctx) => {
 };
 
 onMounted(() => {
+  socket.emit('joinRoom', store.roomId);
   socket.on('startNextRound', () => {
     startTimer();
   });

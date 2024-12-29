@@ -19,37 +19,46 @@ app.use(cors({
 io.on('connection', (socket) => {
     console.log('a user connected');
 
-    socket.on('draw', (data) => {
-        socket.broadcast.emit('draw', data);
-    });
-    socket.on('startGame', (data) => {
-        io.emit('startGame', data);
-    });
-    socket.on('chatMessage', ({ userName, message }) => {
-        io.emit('chatMessage', { userName,  text:message });
+    socket.on('joinRoom', (room) => {
+        socket.join(room);
+        socket.room = room; // Store room in socket object
+        console.log(`User joined room: ${room}`);
     });
 
-    socket.on('answerMessage', ({ userName, answer}) => {
-        io.emit('answerMessage', {userName, answer});
+    socket.on('draw', (data) => {
+        socket.broadcast.to(socket.room).emit('draw', data);
+    });
+
+    socket.on('startGame', (data) => {
+        io.to(socket.room).emit('startGame', data);
+    });
+
+    socket.on('chatMessage', ({ userName, message }) => {
+        io.to(socket.room).emit('chatMessage', { userName, text: message });
+    });
+
+    socket.on('answerMessage', ({ userName, answer }) => {
+        io.to(socket.room).emit('answerMessage', { userName, answer });
     });
 
     socket.on('undo', (lastState) => {
-        socket.broadcast.emit('undo', lastState);
+        socket.broadcast.to(socket.room).emit('undo', lastState);
     });
 
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });
+
     socket.on('startTimer', (answer) => {
-        io.emit('correctAnswer', answer);
+        io.to(socket.room).emit('correctAnswer', answer);
     });
 
     socket.on('getOwnerName', (ownerName) => {
-        io.emit('getOwnerName', ownerName)
+        io.to(socket.room).emit('getOwnerName', ownerName);
     });
 
     socket.on('startNextRound', () => {
-        io.emit('startNextRound')
+        io.to(socket.room).emit('startNextRound');
     });
 });
 

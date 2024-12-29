@@ -71,6 +71,8 @@ async function startGame() {
 onMounted(() => {
   fetchRoomData();
   socket.value = io('http://localhost:3000');
+  socket.value.emit('joinRoom', store.roomId)
+
   socket.value.on('startGame', () => {
     router.push(`/room/${store.roomId}/game`);
   });
