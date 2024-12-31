@@ -16,22 +16,24 @@ onMounted(() => {
   });
 
   socket.on('correctAnswer', (answer) => {
-    correctAnswer.value = answer;
+    correctAnswer.value = answer.correctAnswer;
   });
 });
 
 const sendMessage = () => {
   if (newMessage.value.trim() === '') return;
-  socket.emit('answerMessage', { userName: user, answer: newMessage.value });
+  const message = { userName: user, answer: newMessage.value };
+  message.isCorrect = isCorrectAnswer(message);
+  if (message.isCorrect) {
+    socket.emit('updateScore', { userName: user, increment: 10 });
+  }
+  socket.emit('answerMessage', message);
   newMessage.value = '';
 };
 
 const isCorrectAnswer = (message) => {
-  const isCorrect = message.answer.toLowerCase() === correctAnswer.value;
-  console.log('User Input:', message.answer.toLowerCase());
-  console.log('Correct Answer:', correctAnswer.value);
-  console.log('Is Correct:', isCorrect);
-  return isCorrect;
+  console.log(message)
+  return message.answer.toLowerCase() === correctAnswer.value;
 };
 </script>
 

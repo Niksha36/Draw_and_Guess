@@ -48,10 +48,12 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });
-
-    socket.on('startTimer', (answer) => {
+    socket.on('correctAnswer', (answer) => {
         io.to(socket.room).emit('correctAnswer', answer);
-    });
+    })
+    // socket.on('startTimer', (answer) => {
+    //     io.to(socket.room).emit('correctAnswer', answer);
+    // });
 
     socket.on('getOwnerName', (ownerName) => {
         io.to(socket.room).emit('getOwnerName', ownerName);
@@ -59,6 +61,10 @@ io.on('connection', (socket) => {
 
     socket.on('startNextRound', () => {
         io.to(socket.room).emit('startNextRound');
+    });
+
+    socket.on('updateScore', (userName, increment) => {
+        io.in(socket.room).emit('updateScore', userName, increment);
     });
 });
 

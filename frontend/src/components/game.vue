@@ -17,7 +17,7 @@ const router = useRouter();
 const socket = io('http://localhost:3000');
 const canvasStates = ref([]);
 const isDialogOpen = ref(false); 
-const words = ['слово1', 'слово2']; 
+const words = ref(['слово1', 'слово2']);
 const isPainter = ref(false);
 const currentWord = ref(''); 
 const progressValue = ref(0);
@@ -38,10 +38,10 @@ async function changePainter() {
   }
 }
 
-async function startNextRound() {
+async function startNextRound(word) {
   isDialogOpen.value = false;
   startTimer();
-
+  socket.emit('correctAnswer', {correctAnswer: word})
   if (isPainter.value) {
     await axios.post(`/api/room/${store.roomId}/round`);
     socket.emit('startNextRound');
@@ -90,8 +90,16 @@ const saveCanvasState = (canvas, ctx) => {
   const dataUrl = canvas.toDataURL();
   canvasStates.value.push(dataUrl);
 };
-
+// async function fetchWords() {
+//   try {
+//     const response = await axios.get('/api/words/');
+//     words.value = response.data.words;
+//   } catch (error) {
+//     console.error('Error fetching words:', error);
+//   }
+// }
 onMounted(() => {
+  // fetchWords()
   socket.emit('joinRoom', store.roomId);
   socket.on('startNextRound', () => {
     startTimer();
@@ -240,11 +248,14 @@ onMounted(() => {
         <p>
           <strong class="text">Выберите тему</strong>
         </p>
-        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startNextRound">
-          Сок добрый
-        </button>
-        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startNextRound">
-          Cок недобрый
+        <button
+            v-for="word in words"
+            :key="word"
+            class="button"
+            style="margin: 5px; background-color: transparent; border: none"
+            @click="startNextRound(word)"
+        >
+          {{ word }}
         </button>
       </article>
     </dialog>

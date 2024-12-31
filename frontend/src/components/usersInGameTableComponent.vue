@@ -10,16 +10,53 @@
 </template>
 
 <script setup>
-const users = [
-  { name: 'Nikita', score: 1000, place: 1 },
-  { name: 'Eduard', score: 999, place: 2 },
-  { name: 'Vasya', score: 998, place: 3 },
-  { name: 'Vnya', score: 101, place: 4 },
-  { name: 'Vnya', score: 101, place: 5 },
-  { name: 'Vnya', score: 101, place: 6 },
-  { name: 'Vnya', score: 101, place: 7 },
-  { name: 'Vnya', score: 101, place: 8 }
-];
+import {onMounted, ref} from "vue";
+import axios from "axios";
+import {store} from "@/js/store.js";
+import {io} from "socket.io-client";
+const socket = io('http://localhost:3000');
+const users = ref([]);
+
+function updateScore(userName, scoreIncrement) {
+  const user = users.value.find(user => user.name === userName);
+  if (user) {
+    user.score += scoreIncrement;
+    updatePlaces()
+  }
+}
+function updatePlaces() {
+  users.value.sort((a, b) => b.score - a.score).forEach((user, index) => {
+    user.place = index + 1;
+  });
+}
+async function fetchRoomData() {
+  try {
+    const response = await axios.get(`/api/room/${store.roomId}/`);
+    const players = response.data.players;
+
+
+    users.value = players.map((player, index) => ({
+      name: player.username,
+      score: 0,
+      place: index + 1
+    }));
+
+
+    updatePlaces()
+
+    console.log(users.value);
+  } catch (error) {
+    console.error('Ошибка при получении данных комнаты:', error);
+  }
+}
+
+onMounted(() => {
+  fetchRoomData();
+  socket.emit('joinRoom', store.roomId);
+  socket.on('updateScore', (data) => {
+    updateScore(data.userName, data.increment);
+  });
+});
 //Вот видишь Эдуард хелпую как могу!
 
 // import { ref, onMounted } from 'vue';
