@@ -5,6 +5,7 @@ export const store = reactive({
     username: localStorage.getItem('username') || '',
     userId: localStorage.getItem('userId') || '',
     roomId: localStorage.getItem('roomId') || '',
+    isPainter: localStorage.getItem('isPainter') || false,
 });
 
 // Watch for changes to the username and save to localStorage

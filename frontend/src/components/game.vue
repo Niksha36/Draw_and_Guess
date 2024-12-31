@@ -17,20 +17,35 @@ const router = useRouter();
 const socket = io('http://localhost:3000');
 const canvasStates = ref([]);
 const isDialogOpen = ref(false); 
-const words = ['слово1', 'слово2']; 
 const isPainter = ref(false);
-const currentWord = ref(''); 
 const progressValue = ref(0);
+const players = ref([]);
 let timer = null;
 
 
-function goToMenu() {
-  router.push('/');
+async function goToMenu() {
+  try {
+    await axios.patch(`/api/room/${store.roomId}/exit/`, {
+      user_id: store.userId
+    });
+
+    router.push('/');
+  } catch (error) {
+    console.error(error);
+    alert("Ошибка при выходе из комнаты. Повторите позже.");
+  }
+}
+
+function clearCanvas() {
+  const canvas = document.getElementById('paintCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 async function changePainter() {
   const response = await axios.get(`/api/room/${store.roomId}/`);
   isPainter.value = response.data.painter == store.userId;
+  store.isPainter = isPainter.value;
   console.log(response.data, store.userId)
 
   if (isPainter.value) {
@@ -40,6 +55,7 @@ async function changePainter() {
 
 async function startNextRound() {
   isDialogOpen.value = false;
+  clearCanvas();
   startTimer();
 
   if (isPainter.value) {
@@ -95,6 +111,7 @@ onMounted(() => {
   socket.emit('joinRoom', store.roomId);
   socket.on('startNextRound', () => {
     startTimer();
+    clearCanvas();
   });
 
   changePainter();
@@ -133,7 +150,8 @@ onMounted(() => {
   };
 
   const draw = (e) => {
-    if (!painting) return;
+    console.log(isPainter);
+    if (!painting || !isPainter.value) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;

@@ -1,44 +1,44 @@
 <template>
   <div class="user-list">
-    <div class="user" v-for="user in users" :key="user.name">
-      <div class="user-name">{{ user.name }}</div>
-      <div class="user-score" style="color: #5dcdff;">{{ user.score }}</div>
-      <div class="user-place" style="color: #5cffb6;">{{ user.place }}</div>
-
+    <div class="user" v-for="(user, index) in users" :key="user.username">
+      <div class="user-name">{{ user.username }}</div>
+      <div class="user-score" style="color: #5dcdff;">{{ user.gameScore }}</div>
+      <div class="user-place" style="color: #5cffb6;">{{ index + 1 }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-const users = [
-  { name: 'Nikita', score: 1000, place: 1 },
-  { name: 'Eduard', score: 999, place: 2 },
-  { name: 'Vasya', score: 998, place: 3 },
-  { name: 'Vnya', score: 101, place: 4 },
-  { name: 'Vnya', score: 101, place: 5 },
-  { name: 'Vnya', score: 101, place: 6 },
-  { name: 'Vnya', score: 101, place: 7 },
-  { name: 'Vnya', score: 101, place: 8 }
-];
-//Вот видишь Эдуард хелпую как могу!
+// const users = [
+//   { name: 'Nikita', score: 1000, place: 1 },
+//   { name: 'Eduard', score: 999, place: 2 },
+//   { name: 'Vasya', score: 998, place: 3 },
+//   { name: 'Vnya', score: 101, place: 4 },
+//   { name: 'Vnya', score: 101, place: 5 },
+//   { name: 'Vnya', score: 101, place: 6 },
+//   { name: 'Vnya', score: 101, place: 7 },
+//   { name: 'Vnya', score: 101, place: 8 }
+// ];
+import { ref, onMounted } from 'vue';
+import { store } from "@/js/store.js";
+import axios from 'axios';
 
-// import { ref, onMounted } from 'vue';
-// import axios from 'axios';
-//
-// const users = ref([]);
-//
-// const fetchUsers = async () => {
-//   try {
-//     const response = await axios.get('http://your-django-backend-url/api/users/');
-//     users.value = response.data;
-//   } catch (error) {
-//     console.error('Error fetching users:', error);
-//   }
-// };
-//
-// onMounted(() => {
-//   fetchUsers();
-// });
+const users = ref([]);
+
+async function fetchRoomData() {
+  try {
+    const response = await axios.get(`/api/room/${store.roomId}/`);
+    users.value = response.data.players;
+    console.log(users.value);
+
+  } catch (error) {
+    console.error('Ошибка при получении данных комнаты:', error);
+  }
+}
+
+onMounted(() => {
+  fetchRoomData();
+});
 </script>
 
 <style scoped>
@@ -58,11 +58,7 @@ const users = [
 .user {
   display: flex;
   justify-content: center;
-  /*
-  типа важная строка
-   */
   margin: 0px 15px 0;
-
 }
 
 .user-name {

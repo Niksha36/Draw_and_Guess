@@ -7,17 +7,37 @@ const socket = io('http://localhost:3000');
 const messages = ref([]);
 const newMessage = ref('');
 const user = store.username
+const isPainter = ref(store.isPainter);
+
+const scrollToBottom = () => {
+  const chatMessages = document.querySelector('.chat-messages');
+  if (chatMessages) {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+};
+
 onMounted(() => {
   socket.emit('joinRoom', store.roomId);
   socket.on('chatMessage', (message) => {
     messages.value.push(message);
+    scrollToBottom();
+  });
+
+  socket.on('startNextRound', () => {
+    isPainter.value = store.isPainter;
   });
 });
 
 const sendMessage = () => {
+  if (isPainter.value) {
+    alert("Художник не может писать в чат!"); 
+    return;
+  }
+  
   if (newMessage.value.trim() === '') return;
   socket.emit('chatMessage', { userName: user, message: newMessage.value });
   newMessage.value = '';
+  scrollToBottom();
 };
 </script>
 
@@ -38,6 +58,7 @@ const sendMessage = () => {
           placeholder="Чат здесь..."
           v-model="newMessage"
           @keyup.enter="sendMessage"
+          :disabled="isPainter"
       />
     </div>
   </div>
