@@ -36,9 +36,9 @@ function updateRoom(theme) {
     topic: selectedTopic.value,
     user_id: store.userId,
   })
-      .catch(error => {
-        console.error('Ошибка:', error);
-      });
+  .catch(error => {
+    console.error('Ошибка:', error);
+  });
 }
 
 async function goToMenu() {

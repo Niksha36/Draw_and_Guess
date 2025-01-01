@@ -1,4 +1,5 @@
 <script setup>
+import axios from 'axios';
 import { ref, onMounted } from 'vue';
 import { io } from 'socket.io-client';
 import {store} from "@/js/store.js";
@@ -9,6 +10,7 @@ const newMessage = ref('');
 const user = store.username;
 const correctAnswer = ref('');
 const isPainter = ref(store.isPainter);
+const blockChat = ref(false);
 
 const scrollToBottom = () => {
   const chatMessages = document.querySelector('.chat-messages-answer');
@@ -25,11 +27,12 @@ onMounted(() => {
   });
 
   socket.on('correctAnswer', (answer) => {
-    correctAnswer.value = answer;
+    correctAnswer.value = answer.correctAnswer;
   });
 
   socket.on('startNextRound', () => {
     isPainter.value = store.isPainter;
+    blockChat.value = false;
   });
 });
 
@@ -40,24 +43,40 @@ const sendMessage = () => {
   }
 
   if (newMessage.value.trim() === '') return;
-  socket.emit('answerMessage', { userName: user, answer: newMessage.value });
+  const message = { userName: user, answer: newMessage.value };
+  message.isCorrect = isCorrectAnswer(message);
+  
+  if (message.isCorrect) {
+    let points = 10; // Кол-во баллов за отгаданный рисунок
+    socket.emit('updateScore', { userName: user, increment: points });
+    axios.patch(`/api/user/${store.userId}/update`, {
+      points: points,
+    })
+    .catch(error => {
+      console.error('Ошибка:', error);
+    });
+
+    blockChat.value = true;
+    message.value = message.value;
+    messages.value.push(message);
+    messages.value.push({ userName: "Крокодил", answer: "Вы получили " + points + " баллов.", isCorrect: true});
+  } else {
+    socket.emit('answerMessage', message);
+  }
+  
   newMessage.value = '';
   scrollToBottom();
 };
 
 const isCorrectAnswer = (message) => {
-  const isCorrect = message.answer.toLowerCase() === correctAnswer.value;
-  console.log('User Input:', message.answer.toLowerCase());
-  console.log('Correct Answer:', correctAnswer.value);
-  console.log('Is Correct:', isCorrect);
-  return isCorrect;
+  return message.answer.toLowerCase() === correctAnswer.value;
 };
 </script>
 
 <template>
   <div class="chat-wrapper">
     <div class="chat-messages-answer" style="overflow-y:auto; height: 100%">
-      <div v-for="message in messages" :key="message.id" :class="{'chat-message': true, 'correct-answer': isCorrectAnswer(message)}">
+      <div v-for="message in messages" :key="message.id" :class="{'chat-message': true, 'correct-answer': message.isCorrect}">
         <strong class="chat-message-author">{{ message.userName }}</strong>
         <span class="chat-message-text">{{ message.answer }}</span>
       </div>
@@ -71,7 +90,7 @@ const isCorrectAnswer = (message) => {
           placeholder="Отвечать тут..."
           v-model="newMessage"
           @keyup.enter="sendMessage"
-          :disabled="isPainter"
+          :disabled="isPainter || blockChat"
       />
     </div>
   </div>

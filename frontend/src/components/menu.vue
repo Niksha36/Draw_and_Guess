@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router';
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 import axios from 'axios';
 import '@fortawesome/fontawesome-free/css/all.css';
 import LoginComponent from './LoginComponent.vue';
@@ -80,6 +80,15 @@ function revertMenu() {
 function goToScore() {
   router.push('/score');
 }
+
+onMounted(() => {
+  axios.patch(`/api/user/${store.userId}/update`, {
+    zeroing: true,
+  })
+  .catch(error => {
+    console.error('Ошибка:', error);
+  });
+});
 
 </script>
 
@@ -183,22 +192,7 @@ function goToScore() {
   background-size: 100% 100%;
   background-repeat: no-repeat;
   background-position: center;
-  animation: background-animation 5s linear infinite;
   overflow: hidden;
-}
-
-@keyframes background-animation {
-  0% {
-    background-size: 100% 100%;
-  }
-
-  50% {
-    background-size: 105% 105%;
-  }
-
-  100% {
-    background-size: 100% 100%;
-  }
 }
 
 .border-background-img {

@@ -60,18 +60,22 @@ class UserListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     
-    
-# class UserUpdate(APIView):
-#     def post(self, request, user_id):
-#         try:
-#             user = User.objects.get(id=user_id)
-#         except user.DoesNotExist:
-#             return Response({"error": "Пользователь не найдена"}, status=status.HTTP_404_NOT_FOUND)
+class UserUpdate(APIView):
+    def patch(self, request, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
         
-#         user.gameScore += request.points
+        if request.data.get("zeroing"):
+            user.gameScore = 0
+        else:
+            points = request.data.get("points", 0)
+            user.gameScore += points
         
-#         user.save()
-#         serializer = UserSerializer(user)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
+        user.save()
+
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     

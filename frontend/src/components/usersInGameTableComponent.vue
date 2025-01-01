@@ -1,36 +1,47 @@
 <template>
   <div class="user-list">
-    <div class="user" v-for="(user, index) in users" :key="user.username">
-      <div class="user-name">{{ user.username }}</div>
-      <div class="user-score" style="color: #5dcdff;">{{ user.gameScore }}</div>
-      <div class="user-place" style="color: #5cffb6;">{{ index + 1 }}</div>
+    <div class="user" v-for="user in users" :key="user.name">
+      <div class="user-name">{{ user.name }}</div>
+      <div class="user-score" style="color: #5dcdff;">{{ user.score }}</div>
+      <div class="user-place" style="color: #5cffb6;">{{ user.place }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-// const users = [
-//   { name: 'Nikita', score: 1000, place: 1 },
-//   { name: 'Eduard', score: 999, place: 2 },
-//   { name: 'Vasya', score: 998, place: 3 },
-//   { name: 'Vnya', score: 101, place: 4 },
-//   { name: 'Vnya', score: 101, place: 5 },
-//   { name: 'Vnya', score: 101, place: 6 },
-//   { name: 'Vnya', score: 101, place: 7 },
-//   { name: 'Vnya', score: 101, place: 8 }
-// ];
 import { ref, onMounted } from 'vue';
 import { store } from "@/js/store.js";
 import axios from 'axios';
+import {io} from "socket.io-client";
 
+const socket = io('http://localhost:3000');
 const users = ref([]);
 
+function updateScore(userName, scoreIncrement) {
+  const user = users.value.find(user => user.name === userName);
+  if (user) {
+    user.score += scoreIncrement;
+    updatePlaces()
+  }
+}
+function updatePlaces() {
+  users.value.sort((a, b) => b.score - a.score).forEach((user, index) => {
+    user.place = index + 1;
+  });
+}
 async function fetchRoomData() {
   try {
     const response = await axios.get(`/api/room/${store.roomId}/`);
-    users.value = response.data.players;
-    console.log(users.value);
+    const players = response.data.players;
 
+    users.value = players.map((player, index) => ({
+      name: player.username,
+      score: player.gameScore,
+      place: index + 1
+    }));
+
+
+    updatePlaces()
   } catch (error) {
     console.error('Ошибка при получении данных комнаты:', error);
   }
@@ -38,6 +49,10 @@ async function fetchRoomData() {
 
 onMounted(() => {
   fetchRoomData();
+  socket.emit('joinRoom', store.roomId);
+  socket.on('updateScore', (data) => {
+    updateScore(data.userName, data.increment);
+  });
 });
 </script>
 

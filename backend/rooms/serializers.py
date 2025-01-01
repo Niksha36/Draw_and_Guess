@@ -6,11 +6,11 @@ from users.models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username'] 
+        fields = ['id', 'username', 'gameScore'] 
     
     
 class RoomSerializers(serializers.ModelSerializer):
-    players = UserSerializer(many=True)
+    players = UserSerializer(many=True, read_only=True)
     
     class Meta:
         model = Room

@@ -15,13 +15,24 @@ const isEraserActive = ref(false);
 const isEraserBlackedOut = ref(false);
 const router = useRouter();
 const socket = io('http://localhost:3000');
+const words = ref([]);
+const allWords = ref([]);
 const canvasStates = ref([]);
 const isDialogOpen = ref(false); 
 const isPainter = ref(false);
 const progressValue = ref(0);
-const players = ref([]);
 let timer = null;
 
+
+async function getTopicWords() {
+  try {
+    const response = await axios.get(`/api/room/${store.roomId}/`);
+    const data = await fetch('/words.json').then(response => response.json());
+    allWords.value = data[response.data.topic];
+  } catch (error) {
+    console.error('Ошибка при загрузке данных:', error);
+  }
+}
 
 async function goToMenu() {
   try {
@@ -46,18 +57,22 @@ async function changePainter() {
   const response = await axios.get(`/api/room/${store.roomId}/`);
   isPainter.value = response.data.painter == store.userId;
   store.isPainter = isPainter.value;
-  console.log(response.data, store.userId)
 
   if (isPainter.value) {
     isDialogOpen.value = true;
   }
 }
 
-async function startNextRound() {
+async function startNextRound(word) {
   isDialogOpen.value = false;
+  getTopicWords();
   clearCanvas();
   startTimer();
 
+  const [word1, word2] = getRandomWords(allWords.value);
+  words.value = [word1, word2];
+  
+  socket.emit('correctAnswer', {correctAnswer: word})
   if (isPainter.value) {
     await axios.post(`/api/room/${store.roomId}/round`);
     socket.emit('startNextRound');
@@ -107,11 +122,38 @@ const saveCanvasState = (canvas, ctx) => {
   canvasStates.value.push(dataUrl);
 };
 
-onMounted(() => {
+function getRandomWords(allWords) {
+  const randomIndex1 = Math.floor(Math.random() * allWords.length);
+  let randomIndex2 = Math.floor(Math.random() * allWords.length);
+
+  while (randomIndex2 === randomIndex1) {
+    randomIndex2 = Math.floor(Math.random() * allWords.length);
+  }
+
+  return [allWords[randomIndex1], allWords[randomIndex2]];
+}
+
+onMounted(async () => {
+  await getTopicWords(); 
+  const [word1, word2] = getRandomWords(allWords.value);
+  words.value = [word1, word2];
+
   socket.emit('joinRoom', store.roomId);
   socket.on('startNextRound', () => {
     startTimer();
     clearCanvas();
+  });
+  socket.on('updateScore', (data) => {
+    if (isPainter.value && data.userName != store.username) {
+      let points = 5; // Кол-во баллов за то, что рисунок аватора 
+      socket.emit('updateScore', { userName: store.username, increment: points });
+      axios.patch(`/api/user/${store.userId}/update`, {
+        points: points,
+      })
+      .catch(error => {
+        console.error('Ошибка:', error);
+      });
+    }
   });
 
   changePainter();
@@ -150,7 +192,6 @@ onMounted(() => {
   };
 
   const draw = (e) => {
-    console.log(isPainter);
     if (!painting || !isPainter.value) return;
 
     const rect = canvas.getBoundingClientRect();
@@ -258,11 +299,14 @@ onMounted(() => {
         <p>
           <strong class="text">Выберите тему</strong>
         </p>
-        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startNextRound">
-          Сок добрый
-        </button>
-        <button class="button" style="margin: 5px; background-color: transparent; border: none" @click="startNextRound">
-          Cок недобрый
+        <button
+            v-for="word in words"
+            :key="word"
+            class="button"
+            style="margin: 5px; background-color: transparent; border: none"
+            @click="startNextRound(word)"
+        >
+          {{ word }}
         </button>
       </article>
     </dialog>

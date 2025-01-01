@@ -7,6 +7,7 @@ const socket = io('http://localhost:3000');
 const messages = ref([]);
 const newMessage = ref('');
 const user = store.username
+const correctAnswer = ref('');
 const isPainter = ref(store.isPainter);
 
 const scrollToBottom = () => {
@@ -26,6 +27,10 @@ onMounted(() => {
   socket.on('startNextRound', () => {
     isPainter.value = store.isPainter;
   });
+
+  socket.on('correctAnswer', (answer) => {
+    correctAnswer.value = answer.correctAnswer;
+  });
 });
 
 const sendMessage = () => {
@@ -33,18 +38,27 @@ const sendMessage = () => {
     alert("Художник не может писать в чат!"); 
     return;
   }
+
+  if (isCorrectAnswer(newMessage)) {
+    messages.value.push({ userName: "Крокодил", text: "Нельзя делиться ответом в чате!", exception: true});
+    return;
+  }
   
   if (newMessage.value.trim() === '') return;
-  socket.emit('chatMessage', { userName: user, message: newMessage.value });
+  socket.emit('chatMessage', { userName: user, message: newMessage.value});
   newMessage.value = '';
   scrollToBottom();
+};
+
+const isCorrectAnswer = (message) => {
+  return message.value.toLowerCase() === correctAnswer.value;
 };
 </script>
 
 <template>
   <div class="chat-wrapper">
     <div class="chat-messages" style="overflow-y:auto; height: 100%">
-      <div v-for="message in messages" :key="message.id" class="chat-message">
+      <div v-for="message in messages" :key="message.id" :class="{'chat-message': true, 'exception-message': message.exception}">
         <strong class="chat-message-author">{{ message.userName }}</strong>
         <span class="chat-message-text">{{ message.text }}</span>
       </div>
@@ -77,8 +91,13 @@ const sendMessage = () => {
   height: 100%;
   flex:1;
 }
+
 .chat-message{
   font-size: 18px;
   margin: 3px 0 3px 5px;
+}
+
+.exception-message {
+  color: #e30e0e;
 }
 </style>
