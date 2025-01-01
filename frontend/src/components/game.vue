@@ -4,7 +4,7 @@ import chatComponent from './chatComponent.vue';
 import answersComponent from './AnswersComponent.vue';
 import axios from 'axios';
 import { store } from "@/js/store.js";
-import {onMounted, ref} from 'vue';
+import {onMounted, ref, onBeforeUnmount } from 'vue';
 import {useRouter} from 'vue-router';
 import {io} from 'socket.io-client';
 
@@ -58,14 +58,12 @@ async function changePainter() {
   isPainter.value = response.data.painter == store.userId;
   store.isPainter = isPainter.value;
 
-  if (isPainter.value) {
+  if (isPainter.value && !store.beforeunmount) {
     isDialogOpen.value = true;
   }
 }
 
 async function startNextRound(word) {
-  isDialogOpen.value = false;
-  getTopicWords();
   clearCanvas();
   startTimer();
 
@@ -73,7 +71,7 @@ async function startNextRound(word) {
   words.value = [word1, word2];
   
   socket.emit('correctAnswer', {correctAnswer: word})
-  if (isPainter.value) {
+  if (isPainter.value && !store.beforeunmount) {
     await axios.post(`/api/room/${store.roomId}/round`);
     socket.emit('startNextRound');
   }
@@ -89,6 +87,7 @@ function startTimer() {
       progressValue.value += 3.33;
     } else {
       clearInterval(timer);
+      store.beforeunmount = false;
       changePainter();
     }
   }, 1000);
@@ -133,6 +132,10 @@ function getRandomWords(allWords) {
   return [allWords[randomIndex1], allWords[randomIndex2]];
 }
 
+window.addEventListener('beforeunload', () => {
+  store.beforeunmount = true;
+});
+
 onMounted(async () => {
   await getTopicWords(); 
   const [word1, word2] = getRandomWords(allWords.value);
@@ -155,8 +158,21 @@ onMounted(async () => {
       });
     }
   });
-
-  changePainter();
+  
+  if (!store.beforeunmount) {
+    changePainter();
+  } else {
+    progressValue.value = 80;
+    timer = setInterval(() => {
+    if (progressValue.value < 100) {
+      progressValue.value += 3.33;
+    } else {
+      clearInterval(timer);
+      store.beforeunmount = false;
+      changePainter();
+    }
+  }, 1000);
+  }
 
   const canvas = document.getElementById('paintCanvas');
   const ctx = canvas.getContext('2d');

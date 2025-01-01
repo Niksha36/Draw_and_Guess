@@ -74,6 +74,7 @@ onMounted(() => {
   socket.value.emit('joinRoom', store.roomId)
 
   socket.value.on('startGame', () => {
+    store.beforeunmount = false;
     router.push(`/room/${store.roomId}/game`);
   });
 
