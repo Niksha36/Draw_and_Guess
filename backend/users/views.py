@@ -69,9 +69,11 @@ class UserUpdate(APIView):
         
         if request.data.get("zeroing"):
             user.gameScore = 0
-        else:
+        if request.data.get("points"):
             points = request.data.get("points", 0)
             user.gameScore += points
+        if request.data.get("increment"):
+            user.winGames += 1
         
         user.save()
 

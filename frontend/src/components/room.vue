@@ -5,13 +5,15 @@ import axios from 'axios';
 import { store } from "@/js/store.js";
 import { io } from 'socket.io-client';
 
+const socket = io('http://localhost:3000');
 const isOpen = ref(false);
+const isEmpty = ref(false);
 const selectedTopic = ref();
 const intervalId = ref(null);
 const players = ref([]);
 const isOwner = ref(false);
-const socket = ref(null);
 const router = useRouter();
+let isActive = false;
 
 async function fetchRoomData() {
   try {
@@ -33,6 +35,7 @@ function updateRoom(theme) {
 
   axios.patch(`/api/room/${store.roomId}/update/`, {
     is_private: !isOpen.value,
+    is_active: isActive,
     topic: selectedTopic.value,
     user_id: store.userId,
   })
@@ -51,17 +54,29 @@ async function goToMenu() {
     await axios.patch(`/api/room/${store.roomId}/exit/`, {
       user_id: store.userId
     });
+    
 
     router.push('/');
   } catch (error) {
-    console.error(error);
-    alert("Ошибка при выходе из комнаты. Повторите позже.");
+    if (error.response && error.response.status === 404) {
+      router.push('/');
+    } else {
+      alert("Ошибка при выходе из комнаты. Повторите позже.");
+    }
   }
 }
 
 async function startGame() {
   try {
-    socket.value.emit('startGame', store.roomId);
+    if (players.value.length == 1) {
+      isEmpty.value = true;
+      return;
+    }
+    
+    isActive = true;
+    updateRoom();
+
+    socket.emit('startGame', store.roomId);
   } catch (error) {
     console.error('Ошибка при начале игры:', error);
     alert("Ошибка при начале игры. Повторите позже.");
@@ -70,27 +85,47 @@ async function startGame() {
 
 onMounted(() => {
   fetchRoomData();
-  socket.value = io('http://localhost:3000');
-  socket.value.emit('joinRoom', store.roomId)
+  socket.emit('joinRoom', store.roomId)
 
-  socket.value.on('startGame', () => {
+  socket.on('startGame', () => {
+    store.isEnd = false;
+    store.isDialogOpen = false;
     store.beforeunmount = false;
+    store.correctAnswer = '';
     router.push(`/room/${store.roomId}/game`);
   });
 
   intervalId.value = setInterval(fetchRoomData, 500);
+  
+  axios.patch(`/api/user/${store.userId}/update`, {
+    zeroing: true,
+  })
+  .catch(error => {
+    console.error('Ошибка:', error);
+  });
 });
 
 onBeforeUnmount(() => {
   clearInterval(intervalId.value);
-  if (socket.value) {
-    socket.value.close();
+  if (socket) {
+    socket.close();
   }
 });
 </script>
 
 <template>
   <div class="background">
+    <dialog v-if="isEmpty" open>
+      <article class="dialog">
+        <p>
+          <strong>🤼 Недостаточно игроков!</strong><br>
+          Для начала игры необходимо хотя бы два игрока.
+        </p>
+        <button class="button" style="margin: 0; background-color: transparent; border: none"
+          @click="isEmpty = false">Закрыть
+        </button>
+      </article>
+    </dialog>
     <div class="wrapper">
       <div class="top-wrapper">
         <div class="return-to-menu-btn" @click="goToMenu"></div>
@@ -351,6 +386,39 @@ input[type="checkbox"]:focus {
 
 .button:hover {
   background-color: #89ffcc;
+}
+
+.dialog {
+  border-radius: 10px;
+  max-width: 400px;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.dialog .button {
+  background-image: url("../assets/button.svg");
+  width: 281px;
+  height: 66px;
+  border: none;
+  color: #ffd506;
+  text-shadow: rgb(23, 21, 86) 4px 0px 0px, rgb(23, 21, 86) 3.87565px .989616px 0px, rgb(23, 21, 86) 3.51033px 1.9177px 0px, rgb(23, 21, 86) 2.92676px 2.72656px 0px, rgb(23, 21, 86) 2.16121px 3.36588px 0px, rgb(23, 21, 86) 1.26129px 3.79594px 0px, rgb(23, 21, 86) .282949px 3.98998px 0px, rgb(23, 21, 86) -.712984px 3.93594px 0px, rgb(23, 21, 86) -1.66459px 3.63719px 0px, rgb(23, 21, 86) -2.51269px 3.11229px 0px, rgb(23, 21, 86) -3.20457px 2.39389px 0px, rgb(23, 21, 86) -3.69721px 1.52664px 0px, rgb(23, 21, 86) -3.95997px .56448px 0px, rgb(23, 21, 86) -3.97652px -.432781px 0px, rgb(23, 21, 86) -3.74583px -1.40313px 0px, rgb(23, 21, 86) -3.28224px -2.28625px 0px, rgb(23, 21, 86) -2.61457px -3.02721px 0px, rgb(23, 21, 86) -1.78435px -3.57996px 0px, rgb(23, 21, 86) -.843183px -3.91012px 0px, rgb(23, 21, 86) .150409px -3.99717px 0px, rgb(23, 21, 86) 1.13465px -3.8357px 0px, rgb(23, 21, 86) 2.04834px -3.43574px 0px, rgb(23, 21, 86) 2.83468px -2.82216px 0px, rgb(23, 21, 86) 3.44477px -2.03312px 0px, rgb(23, 21, 86) 3.84068px -1.11766px 0px, rgb(23, 21, 86) 3.9978px -.132717px 0px;
+  font-size: 24px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+  cursor: pointer;
+  background-position: center;
+  box-shadow: none;
+}
+
+.dialog .button:hover {
+  background-image: url("../assets/hover_button.svg");
 }
 
 </style>

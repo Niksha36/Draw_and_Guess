@@ -23,6 +23,8 @@ class RoomCreating(APIView):
         serializer = RoomSerializers(data=request.data)
         if serializer.is_valid():
             room = serializer.save()
+            print("ROOM Create")
+            print(room.players.all())
             return Response({"status": "Room created", "id": room.id}, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -51,16 +53,20 @@ class RoomUpdate(APIView):
 
         topic = request.data.get('topic')
         is_private = request.data.get('is_private')
+        is_active = request.data.get('is_active')
         players = request.data.get('players')
 
         if topic is not None:
             room.topic = topic
         if is_private is not None:
             room.is_private = is_private
+        if is_active is not None:
+            room.is_active = is_active
         if players:
             player_ids = [player['id'] for player in players if 'id' in player]
             room.players.add(*player_ids) 
-
+        print("ROOM UPDate")
+        print(room.players.all())
         room.save()
         serializer = RoomSerializers(room)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -68,7 +74,7 @@ class RoomUpdate(APIView):
 
 class OpenRoomList(APIView):
     def get(self, request):
-        open_room = Room.objects.filter(is_private=False).annotate(num_players=Count('players')).filter(num_players__lt=14).first()
+        open_room = Room.objects.filter(is_private=False).filter(is_active=False).annotate(num_players=Count('players')).filter(num_players__lt=14).first()
         
         if open_room:
             serializer = RoomSerializers(open_room)
@@ -95,12 +101,23 @@ class RoomExit(APIView):
 
 
         user_id = request.data.get('user_id')
+        
         if user_id is None:
             return Response({"error": "Не указан user_id"}, status=status.HTTP_400_BAD_REQUEST)
 
+        if room.painter.id == int(user_id):
+            if room.players.count() > 1:
+                players = list(room.players.all())
+                current_painter_index = players.index(room.painter) if room.painter in players else -1
+                next_painter_index = (current_painter_index + 1) % len(players)  
+                room.painter = players[next_painter_index]
+                room.save()
+                
         room.players.remove(user_id)
-        
+        print(room.players.all())
         if room.players.count() == 0:
+            print(room.players)
+            print("ROOM DELETE")
             room.delete()
             return Response({"message": "Комната удалена, так как в ней больше нет игроков."}, status=status.HTTP_204_NO_CONTENT)
         
@@ -120,7 +137,10 @@ class RoundUpdate(APIView):
         except Room.DoesNotExist:
             return Response({"error": "Комната не найдена"}, status=status.HTTP_404_NOT_FOUND)
         
-        room.painter = random.choice(room.players.all())
+        players = list(room.players.all())
+        current_painter_index = players.index(room.painter) if room.painter in players else -1
+        next_painter_index = (current_painter_index + 1) % len(players)  
+        room.painter = players[next_painter_index]
 
         room.save()
         serializer = RoomSerializers(room)

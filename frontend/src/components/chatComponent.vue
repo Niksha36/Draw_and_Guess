@@ -8,7 +8,6 @@ const messages = ref([]);
 const newMessage = ref('');
 const user = store.username
 const correctAnswer = ref('');
-const isPainter = ref(store.isPainter);
 
 const scrollToBottom = () => {
   const chatMessages = document.querySelector('.chat-messages');
@@ -18,29 +17,34 @@ const scrollToBottom = () => {
 };
 
 onMounted(() => {
-  socket.emit('joinRoom', store.roomId);
+  socket.emit('joinRoom', Number(store.roomId));
   socket.on('chatMessage', (message) => {
     messages.value.push(message);
     scrollToBottom();
   });
 
-  socket.on('startNextRound', () => {
-    isPainter.value = store.isPainter;
-  });
-
   socket.on('correctAnswer', (answer) => {
     correctAnswer.value = answer.correctAnswer;
+    store.correctAnswer = correctAnswer.value;
   });
-});
+  socket.on('endRound', () => {
+    store.isPainter = false;
+  })
+
+  if (store.correctAnswer != '') {
+    correctAnswer.value = store.correctAnswer;
+  }
+})
 
 const sendMessage = () => {
-  if (isPainter.value) {
+  if (store.isPainter) {
     alert("Художник не может писать в чат!"); 
     return;
   }
 
   if (isCorrectAnswer(newMessage)) {
     messages.value.push({ userName: "Крокодил", text: "Нельзя делиться ответом в чате!", exception: true});
+    scrollToBottom();
     return;
   }
   
@@ -72,7 +76,7 @@ const isCorrectAnswer = (message) => {
           placeholder="Чат здесь..."
           v-model="newMessage"
           @keyup.enter="sendMessage"
-          :disabled="isPainter"
+          :disabled="store.isPainter"
       />
     </div>
   </div>

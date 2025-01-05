@@ -14,14 +14,30 @@ import { store } from "@/js/store.js";
 import axios from 'axios';
 import {io} from "socket.io-client";
 
+
 const socket = io('http://localhost:3000');
 const users = ref([]);
+const finallyScore = 40;
+
 
 function updateScore(userName, scoreIncrement) {
   const user = users.value.find(user => user.name === userName);
   if (user) {
     user.score += scoreIncrement;
-    updatePlaces()
+    updatePlaces();
+
+    if (user.score >= finallyScore) {
+      socket.emit('endGame');
+
+      if (userName == store.username) {
+        axios.patch(`/api/user/${store.userId}/update`, {
+          increment: true,
+        })
+        .catch(error => {
+          console.error('Ошибка:', error);
+        });
+      }
+    }
   }
 }
 function updatePlaces() {
@@ -40,6 +56,10 @@ async function fetchRoomData() {
       place: index + 1
     }));
 
+    if (players.length == 1) {
+      socket.emit('endGame');
+      return;
+    }
 
     updatePlaces()
   } catch (error) {
@@ -49,9 +69,12 @@ async function fetchRoomData() {
 
 onMounted(() => {
   fetchRoomData();
-  socket.emit('joinRoom', store.roomId);
+  socket.emit('joinRoom', Number(store.roomId));
   socket.on('updateScore', (data) => {
     updateScore(data.userName, data.increment);
+  });
+  socket.on('changePainter', () => {
+    fetchRoomData();
   });
 });
 </script>

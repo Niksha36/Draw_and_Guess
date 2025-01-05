@@ -6,10 +6,11 @@ import '@fortawesome/fontawesome-free/css/all.css';
 import LoginComponent from './LoginComponent.vue';
 import { store } from '@/js/store.js';
 
+
 const router = useRouter();
 const showLogin = ref(false);
-const showDialog = ref(false)
-
+const showDialog = ref(false);
+const showDialogOpen = ref(false);
 const username = computed(() => store.username);
 const buttonText = computed(() => (username.value ? 'Выйти' : 'Войти'));
 
@@ -58,7 +59,7 @@ async function goToGame() {
       store.roomId = openRoom.id;
       router.push(`/room/${openRoom.id}`);
     } else {
-      alert("Нет доступных комнат для игры.");
+      showDialogOpen.value = true;
     }
   } catch (error) {
     console.error(error);
@@ -75,20 +76,9 @@ function logout() {
 function revertMenu() {
   showLogin.value = false;
 }
-
-
 function goToScore() {
   router.push('/score');
 }
-
-onMounted(() => {
-  axios.patch(`/api/user/${store.userId}/update`, {
-    zeroing: true,
-  })
-  .catch(error => {
-    console.error('Ошибка:', error);
-  });
-});
 
 </script>
 
@@ -97,11 +87,22 @@ onMounted(() => {
     <dialog v-if="showDialog" open>
       <article class="dialog">
         <p>
-          <strong>🔒 Вам нужно авторизоваться!</strong>
+          <strong>🔒 Вам нужно авторизоваться!</strong><br>
           Для начала игры, пожалуйста, авторизуйтесь.
         </p>
         <button class="button" style="margin: 0; background-color: transparent; border: none"
           @click="showDialog = false">Закрыть
+        </button>
+      </article>
+    </dialog>
+    <dialog v-if="showDialogOpen" open>
+      <article class="dialog">
+        <p>
+          <strong>⏰️ Нет доступных комнат!</strong><br>
+          Создайте свою комнату или подождите пока появятся новые.
+        </p>
+        <button class="button" style="margin: 0; background-color: transparent; border: none"
+          @click="showDialogOpen = false">Закрыть
         </button>
       </article>
     </dialog>

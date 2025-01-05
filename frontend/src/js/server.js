@@ -12,6 +12,9 @@ const io = new Server(server, {
     }
 });
 
+let dialogTimer = null;
+let timer = null;
+
 app.use(cors({
     origin: 'http://localhost:5173'
 }));
@@ -62,9 +65,74 @@ io.on('connection', (socket) => {
     socket.on('startNextRound', () => {
         io.to(socket.room).emit('startNextRound');
     });
+    
+    socket.on('changePainter', () => {
+        io.to(socket.room).emit('changePainter');
+    });
 
     socket.on('updateScore', (userName, increment) => {
         io.in(socket.room).emit('updateScore', userName, increment);
+    });
+
+    socket.on('time', (time) => {
+        io.in(socket.room).emit('time', time);
+    });
+
+    socket.on('dialogTime', (time) => {
+        io.in(socket.room).emit('dialogTime', time);
+    });
+
+    socket.on('endRound', () => {
+        io.in(socket.room).emit('endRound');
+    });
+
+    socket.on('endGame', () => {
+        io.in(socket.room).emit('endGame');
+    });
+
+    socket.on('startGame', () => {
+        if (timer) {
+            clearInterval(timer);
+        }
+        let timerValue = 0;
+        timer = setInterval(() => {
+            timerValue++;
+            io.to(socket.room).emit('time', timerValue);
+            if (timerValue > 60) {
+                clearInterval(timer);
+                timer = null;
+                return;
+            }
+        }, 1000);
+    });
+
+    socket.on('startTimer', () => {
+        if (dialogTimer) {
+            clearInterval(dialogTimer);
+        }
+        let dialogTimerValue = 0;
+        dialogTimer = setInterval(() => {
+            dialogTimerValue++;
+            io.to(socket.room).emit('dialogTime', dialogTimerValue);
+            if (dialogTimerValue > 10) {
+                clearInterval(dialogTimer);
+                dialogTimer = null;
+                return;
+            }
+        }, 1000);
+    });
+
+    socket.on('resetTimer', () => {
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+        if (dialogTimer) {
+            clearInterval(dialogTimer);
+            dialogTimer = null;
+        }
+        io.to(socket.room).emit('time', 0); 
+        io.to(socket.room).emit('dialogTime', 0);
     });
 });
 

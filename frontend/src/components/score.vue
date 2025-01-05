@@ -20,7 +20,7 @@ export default {
       try {
         const response = await axios.get('/api/users/');
         this.users = response.data;
-        console.log(this.users);
+        this.users.sort((a, b) => b.winGames - a.winGames).forEach((user, index));
       } catch (error) {
         console.error("Error fetching users:", error);
       }

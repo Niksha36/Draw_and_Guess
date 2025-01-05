@@ -4,25 +4,90 @@ import chatComponent from './chatComponent.vue';
 import answersComponent from './AnswersComponent.vue';
 import axios from 'axios';
 import { store } from "@/js/store.js";
-import {onMounted, ref, onBeforeUnmount } from 'vue';
+import {onMounted, ref } from 'vue';
 import {useRouter} from 'vue-router';
 import {io} from 'socket.io-client';
 
+
+const socket = io('http://localhost:3000');
 const selectedColor = ref(null);
 const currentColor = ref('black');
 const brushThickness = ref(5);
 const isEraserActive = ref(false);
 const isEraserBlackedOut = ref(false);
 const router = useRouter();
-const socket = io('http://localhost:3000');
 const words = ref([]);
 const allWords = ref([]);
 const canvasStates = ref([]);
-const isDialogOpen = ref(false); 
+const showDialogOpen = ref(false);
 const isPainter = ref(false);
+const correctAnswer = ref('');
 const progressValue = ref(0);
-let timer = null;
+const dialogProgressValue = ref(0);
 
+
+async function roomExit() {
+  axios.patch(`/api/room/${store.roomId}/exit/`, {
+    user_id: store.userId
+  });
+}
+
+async function goToMenu() {
+  try {
+    socket.emit('changePainter');
+    await roomExit();
+    socketDisconnect();
+
+    router.push('/');
+  } catch (error) {
+    socketDisconnect();
+    if (error.response && error.response.status === 404) {
+      socket.emit('changePainter');
+      router.push('/');
+    } else {
+      alert("Ошибка при выходе из комнаты. Повторите позже.");
+    }
+  }
+}
+
+async function goToGame() {
+  try {
+    await roomExit();
+
+    // Проверяем, авторизован ли пользователь
+    if (store.username == '' || store.userId == '') {
+      showDialog.value = true;
+      return;
+    }
+
+    const response = await axios.get('/api/room/open/');
+    const openRoom = response.data;
+
+    const playerData = {
+      id: store.userId,
+      username: store.username
+    };
+
+    if (openRoom) {
+      await axios.patch(`/api/room/${openRoom.id}/update/`, {
+        players: [playerData]
+      });
+
+      socketDisconnect();
+      store.roomId = openRoom.id;
+      router.push(`/room/${openRoom.id}`);
+    } else {
+      showDialogOpen.value = true;
+    }
+  } catch (error) {
+    socketDisconnect();
+    if (error.response && error.response.status === 404) {
+      router.push('/');
+    } else {
+      alert("Ошибка при выходе из комнаты. Повторите позже.");
+    }
+  }
+}
 
 async function getTopicWords() {
   try {
@@ -34,68 +99,100 @@ async function getTopicWords() {
   }
 }
 
-async function goToMenu() {
-  try {
-    await axios.patch(`/api/room/${store.roomId}/exit/`, {
-      user_id: store.userId
-    });
+async function changePainter() {
+  if (isPainter.value) {
+    await axios.post(`/api/room/${store.roomId}/round`);
+    socket.emit('changePainter');
+  }
 
-    router.push('/');
-  } catch (error) {
-    console.error(error);
-    alert("Ошибка при выходе из комнаты. Повторите позже.");
+  socket.emit('resetTimer');
+  const response = await axios.get(`/api/room/${store.roomId}/`);
+  isPainter.value = response.data.painter == store.userId;
+  store.isPainter = isPainter.value;
+  store.isDialogOpen = true;
+  console.log(store.isPainter)
+  startDialogTimer();
+} 
+
+function getRandomWords(allWords) {
+  const randomIndex1 = Math.floor(Math.random() * allWords.length);
+  let randomIndex2 = Math.floor(Math.random() * allWords.length);
+
+  while (randomIndex2 === randomIndex1) {
+    randomIndex2 = Math.floor(Math.random() * allWords.length);
+  }
+
+  return [allWords[randomIndex1], allWords[randomIndex2]];
+}
+
+async function startNextRound(word) {
+  const [word1, word2] = getRandomWords(allWords.value);
+  words.value = [word1, word2];
+
+  clearCanvas();
+  startTimer();
+
+  if (isPainter.value) {
+    socket.emit("startGame");
+  }
+  
+  correctAnswer.value = word;
+  store.correctAnswer = word;
+  socket.emit('correctAnswer', {correctAnswer: word})
+  if (isPainter.value && !store.beforeunmount) {
+    socket.emit('startNextRound');
   }
 }
+
+function startTimer() {
+  socket.off('time');
+  store.isDialogOpen = false;
+
+  socket.on('time', (time) => {
+    progressValue.value = time / 60 * 100 ;
+    console.log("MAIN TIMER", time)
+    if (time >= 60) {
+      store.beforeunmount = false;
+
+      if (isPainter.value) {
+          changePainter();
+          socket.emit('endRound');
+        }
+    }
+  });
+}
+
+function startDialogTimer() {
+  socket.off('dialogTime');
+  if (isPainter.value) {
+    socket.emit("startTimer");
+  }
+
+  socket.on('dialogTime', async (time) => {
+    dialogProgressValue.value = time / 30 * 100;
+    console.log(time)
+    if (time >= 10) {
+      store.beforeunmount = false;
+
+      if (isPainter.value) {
+        await changePainter();
+        socket.emit('changePainter');
+        socket.emit('startTimer');
+        store.isDialogOpen = false;
+      }
+    }
+  });
+}
+
+const toggleEraserBlackout = () => {
+  isEraserBlackedOut.value = !isEraserBlackedOut.value;
+};
 
 function clearCanvas() {
   const canvas = document.getElementById('paintCanvas');
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
-
-async function changePainter() {
-  const response = await axios.get(`/api/room/${store.roomId}/`);
-  isPainter.value = response.data.painter == store.userId;
-  store.isPainter = isPainter.value;
-
-  if (isPainter.value && !store.beforeunmount) {
-    isDialogOpen.value = true;
-  }
-}
-
-async function startNextRound(word) {
-  clearCanvas();
-  startTimer();
-
-  const [word1, word2] = getRandomWords(allWords.value);
-  words.value = [word1, word2];
-  
-  socket.emit('correctAnswer', {correctAnswer: word})
-  if (isPainter.value && !store.beforeunmount) {
-    await axios.post(`/api/room/${store.roomId}/round`);
-    socket.emit('startNextRound');
-  }
-}
-
-function startTimer() {
-  progressValue.value = 0;
-  isDialogOpen.value = false;
-  
-  if (timer) clearInterval(timer);
-  timer = setInterval(() => {
-    if (progressValue.value < 100) {
-      progressValue.value += 3.33;
-    } else {
-      clearInterval(timer);
-      store.beforeunmount = false;
-      changePainter();
-    }
-  }, 1000);
-}
-
-const toggleEraserBlackout = () => {
-  isEraserBlackedOut.value = !isEraserBlackedOut.value;
-};
 
 const changeColor = (color, event) => {
   if (selectedColor.value) {
@@ -121,27 +218,53 @@ const saveCanvasState = (canvas, ctx) => {
   canvasStates.value.push(dataUrl);
 };
 
-function getRandomWords(allWords) {
-  const randomIndex1 = Math.floor(Math.random() * allWords.length);
-  let randomIndex2 = Math.floor(Math.random() * allWords.length);
-
-  while (randomIndex2 === randomIndex1) {
-    randomIndex2 = Math.floor(Math.random() * allWords.length);
-  }
-
-  return [allWords[randomIndex1], allWords[randomIndex2]];
+function socketDisconnect() {
+  socket.off('changePainter');
+  socket.off('startNextRound');
+  socket.off('time');
+  socket.off('updateScore');
+  socket.off('undo');
+  socket.off('draw');
+  socket.disconnect();
 }
 
-window.addEventListener('beforeunload', () => {
+window.addEventListener('beforeunload', (event) => {
   store.beforeunmount = true;
 });
 
 onMounted(async () => {
+  socket.emit('joinRoom', Number(store.roomId));
+  
+  const response = await axios.get(`/api/room/${store.roomId}/`);
+  isPainter.value = response.data.painter == store.userId;
+  store.isPainter = isPainter.value;
+  correctAnswer.value = store.correctAnswer;
+
+  if (!store.beforeunmount) {
+    store.isDialogOpen = true;
+    startDialogTimer();
+  }
+
   await getTopicWords(); 
   const [word1, word2] = getRandomWords(allWords.value);
   words.value = [word1, word2];
 
-  socket.emit('joinRoom', store.roomId);
+  if (store.beforeunmount) {
+    if (store.isDialogOpen) {
+      startDialogTimer();
+    } else {
+      startTimer();
+    }
+  }
+
+  socket.on('startGame', () => {
+    socket.off('dialogTime');
+  })
+  socket.on('changePainter', () => {
+    if (!isPainter.value) {
+      changePainter();
+    }
+  });
   socket.on('startNextRound', () => {
     startTimer();
     clearCanvas();
@@ -158,21 +281,11 @@ onMounted(async () => {
       });
     }
   });
-  
-  if (!store.beforeunmount) {
-    changePainter();
-  } else {
-    progressValue.value = 80;
-    timer = setInterval(() => {
-    if (progressValue.value < 100) {
-      progressValue.value += 3.33;
-    } else {
-      clearInterval(timer);
-      store.beforeunmount = false;
-      changePainter();
-    }
-  }, 1000);
-  }
+  socket.on('endGame', () => {
+    store.isEnd = true;
+    socket.off('dialogTime');
+    socket.off('time');
+  })
 
   const canvas = document.getElementById('paintCanvas');
   const ctx = canvas.getContext('2d');
@@ -233,7 +346,6 @@ onMounted(async () => {
     };
 
     socket.emit('draw', drawData);
-
     drawOnCanvas(drawData);
 
     lastX = x;
@@ -278,7 +390,7 @@ onMounted(async () => {
   };
 
   window.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === 'z') {
+    if (e.ctrlKey && (e.key === 'z' || e.key === 'я')) {
       undoLastAction(canvas, ctx);
     }
   });
@@ -310,8 +422,32 @@ onMounted(async () => {
 
 <template>
   <div class="background" draggable="false">
-    <dialog open v-if="isDialogOpen">
-      <article  class="dialog">
+    <dialog v-if="showDialogOpen" open>
+      <article class="dialog">
+        <p>
+          <strong>⏰️ Нет доступных комнат!</strong><br>
+          Создайте свою комнату или подождите пока появятся новые.
+        </p>
+        <button class="button" style="margin: 0; background-color: transparent; border: none"
+          @click="showDialogOpen = false">Закрыть
+        </button>
+      </article>
+    </dialog>
+    <dialog v-if="store.isEnd && !showDialogOpen" open>
+      <article class="dialog">
+        <p>
+          <strong class="text">Игра окончена!</strong>
+        </p>
+        <button class="button" style="margin: 0; background-color: transparent; border: none" @click="goToGame">
+          Играть
+        </button>
+        <button class="button" style="margin: 0; background-color: transparent; border: none" @click="goToMenu">
+          Вернуться в меню
+        </button>
+      </article>
+    </dialog>
+    <dialog open v-if="store.isDialogOpen && !store.isEnd && isPainter">
+      <article class="dialog">
         <p>
           <strong class="text">Выберите тему</strong>
         </p>
@@ -324,6 +460,22 @@ onMounted(async () => {
         >
           {{ word }}
         </button>
+        <progress class="custom-progress-dialog" :value="dialogProgressValue" max="30"></progress>
+        <p> 
+          <strong> Время на выбор темы </strong>
+        </p>
+      </article>
+    </dialog>
+    <dialog open v-if="store.isDialogOpen && !store.isEnd && !isPainter">
+      <article class="dialog">
+        <p>
+          <strong class="text">Пожалуйста, подождите</strong><br>
+          <strong v-if="correctAnswer != ''" style="margin-top: 10px">Было загадано слово: {{ correctAnswer }} </strong>
+        </p>
+        <progress class="custom-progress-dialog" :value="dialogProgressValue" max="30"></progress>
+        <p> 
+          <strong> Ожидайте выбора темы </strong>
+        </p>
       </article>
     </dialog>
     <div class="main-wrapper">
@@ -351,6 +503,10 @@ onMounted(async () => {
       <div class="paint-board-wrapper" draggable="false">
         <img src="../assets/bg_content.svg" alt="Background" class="background-image" draggable="false">
         <canvas draggable="false" id="paintCanvas"></canvas>
+        <div v-if="isPainter && !store.isDialogOpen && !store.isEnd" class="word-display" style="position: absolute; top: 100px; left: 50%; transform: translateX(-50%); z-index: 1000;">
+            <span>Загаданное слово: </span>
+            <strong>{{ correctAnswer }}</strong>
+        </div>
         <div class="go-to-menu-icon-wrapper" @click="goToMenu" style="cursor: pointer">
           <div class="go-to-menu-icon">
             <img src="../assets/small_button_border.svg" alt="border" class="home-border">
@@ -434,8 +590,22 @@ onMounted(async () => {
   right:0;
   text-shadow: var(--text-shadow);
 }
-.custom-progress::-webkit-progress-value {
-  background-color: deeppink;
+
+.word-display{
+  background-image: url("../assets/button.svg");
+  width: 100%;
+  height: 66px;
+  border: none;
+  color: #ffd506;
+  text-shadow: rgb(23, 21, 86) 4px 0px 0px, rgb(23, 21, 86) 3.87565px .989616px 0px, rgb(23, 21, 86) 3.51033px 1.9177px 0px, rgb(23, 21, 86) 2.92676px 2.72656px 0px, rgb(23, 21, 86) 2.16121px 3.36588px 0px, rgb(23, 21, 86) 1.26129px 3.79594px 0px, rgb(23, 21, 86) .282949px 3.98998px 0px, rgb(23, 21, 86) -.712984px 3.93594px 0px, rgb(23, 21, 86) -1.66459px 3.63719px 0px, rgb(23, 21, 86) -2.51269px 3.11229px 0px, rgb(23, 21, 86) -3.20457px 2.39389px 0px, rgb(23, 21, 86) -3.69721px 1.52664px 0px, rgb(23, 21, 86) -3.95997px .56448px 0px, rgb(23, 21, 86) -3.97652px -.432781px 0px, rgb(23, 21, 86) -3.74583px -1.40313px 0px, rgb(23, 21, 86) -3.28224px -2.28625px 0px, rgb(23, 21, 86) -2.61457px -3.02721px 0px, rgb(23, 21, 86) -1.78435px -3.57996px 0px, rgb(23, 21, 86) -.843183px -3.91012px 0px, rgb(23, 21, 86) .150409px -3.99717px 0px, rgb(23, 21, 86) 1.13465px -3.8357px 0px, rgb(23, 21, 86) 2.04834px -3.43574px 0px, rgb(23, 21, 86) 2.83468px -2.82216px 0px, rgb(23, 21, 86) 3.44477px -2.03312px 0px, rgb(23, 21, 86) 3.84068px -1.11766px 0px, rgb(23, 21, 86) 3.9978px -.132717px 0px;
+  font-size: 24px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+  background-position: center;
+  box-shadow: none;
 }
 
 .brush-thickness-text {
@@ -644,6 +814,32 @@ canvas {
   text-shadow: rgb(23, 5, 87) 3px 0px 0px, rgb(23, 5, 87) 2.83487px .981584px 0px, rgb(23, 5, 87) 2.35766px 1.85511px 0px, rgb(23, 5, 87) 1.62091px 2.52441px 0px, rgb(23, 5, 87) .705713px 2.91581px 0px, rgb(23, 5, 87) -.287171px 2.98622px 0px, rgb(23, 5, 87) -1.24844px 2.72789px 0px, rgb(23, 5, 87) -2.07227px 2.16926px 0px, rgb(23, 5, 87) -2.66798px 1.37182px 0px, rgb(23, 5, 87) -2.96998px .42336px 0px, rgb(23, 5, 87) -2.94502px -.571704px 0px, rgb(23, 5, 87) -2.59586px -1.50383px 0px, rgb(23, 5, 87) -1.96093px -2.27041px 0px, rgb(23, 5, 87) -1.11013px -2.78704px 0px, rgb(23, 5, 87) -.137119px -2.99686px 0px, rgb(23, 5, 87) .850987px -2.87677px 0px, rgb(23, 5, 87) 1.74541px -2.43999px 0px, rgb(23, 5, 87) 2.44769px -1.73459px 0px, rgb(23, 5, 87) 2.88051px -.838247px 0px;
   text-transform: uppercase;
   text-align: center;
+}
+
+.custom-progress .custom-progress-dialog{
+  width: 100%;
+  height: 10px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  background-color: #ddd;
+  border-radius: 5px;
+}
+
+.custom-progress-dialog {
+  width: 281px;
+  margin-top: 20px;
+}
+
+.custom-progress {
+  width: 100%;
+}
+
+.custom-progress::-webkit-progress-value {
+  background-color: deeppink;
+}
+
+.custom-progress-dialog::-webkit-progress-value {
+  background-color: #ffc800;
 }
 
 @media (max-height: 460px) or (max-width: 770px) {

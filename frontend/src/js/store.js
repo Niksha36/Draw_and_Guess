@@ -5,8 +5,14 @@ export const store = reactive({
     username: localStorage.getItem('username') || '',
     userId: localStorage.getItem('userId') || '',
     roomId: localStorage.getItem('roomId') || '',
-    isPainter: localStorage.getItem('isPainter') || false,
-    beforeunmount: localStorage.getItem('beforeunmount') || false,
+    correctAnswer: localStorage.getItem('correctAnswer') || '',
+    isPainter: localStorage.getItem('isPainter') === 'true' || false,
+    isEnd: localStorage.getItem('isEnd') === 'true' || false,
+    isDialogOpen: localStorage.getItem('isDialogOpen') === 'true' || false,
+    blockChat: localStorage.getItem('blockChat') === 'true' || false,
+    beforeunmount: localStorage.getItem('beforeunmount') === 'true' || false,
+    progressValue: localStorage.getItem('progressValue') || 0,
+    dialogProgressValue: localStorage.getItem('dialogProgressValue') || 0,
 });
 
 // Watch for changes to the username and save to localStorage
@@ -25,3 +31,22 @@ watch(() => store.isPainter, (newPainter) => {
 watch(() => store.beforeunmount, (newBeforeunmount) => {
     localStorage.setItem('beforeunmount', newBeforeunmount);
 });
+watch(() => store.correctAnswer, (newcorrectAnswer) => {
+    localStorage.setItem('correctAnswer', newcorrectAnswer);
+});
+watch(() => store.blockChat, (newBlockChat) => {
+    localStorage.setItem('blockChat', newBlockChat);
+});
+watch(() => store.isEnd, (newIsEnd) => {
+    localStorage.setItem('isEnd', newIsEnd);
+});
+watch(() => store.isDialogOpen, (newIsDialogOpen) => {
+    localStorage.setItem('isDialogOpen', newIsDialogOpen);
+});
+watch(() => store.progressValue, (newProgressValue) => {
+    localStorage.setItem('progressValue', newProgressValue);
+});
+watch(() => store.dialogProgressValue, (newDialogProgressValue) => {
+    localStorage.setItem('dialogProgressValue', newDialogProgressValue);
+});
+

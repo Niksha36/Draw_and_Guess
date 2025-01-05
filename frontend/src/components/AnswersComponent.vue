@@ -9,8 +9,6 @@ const messages = ref([]);
 const newMessage = ref('');
 const user = store.username;
 const correctAnswer = ref('');
-const isPainter = ref(store.isPainter);
-const blockChat = ref(false);
 
 const scrollToBottom = () => {
   const chatMessages = document.querySelector('.chat-messages-answer');
@@ -20,7 +18,7 @@ const scrollToBottom = () => {
 };
 
 onMounted(() => {
-  socket.emit('joinRoom', store.roomId);
+  socket.emit('joinRoom', Number(store.roomId));
   socket.on('answerMessage', (message) => {
     messages.value.push(message);
     scrollToBottom();
@@ -28,16 +26,23 @@ onMounted(() => {
 
   socket.on('correctAnswer', (answer) => {
     correctAnswer.value = answer.correctAnswer;
+    store.correctAnswer = correctAnswer.value;
   });
 
   socket.on('startNextRound', () => {
-    isPainter.value = store.isPainter;
-    blockChat.value = false;
+    store.blockChat = false;
   });
+  socket.on('endRound', () => {
+    store.blockChat = true;
+  })
+
+  if (store.correctAnswer != '') {
+    correctAnswer.value = store.correctAnswer;
+  }
 });
 
 const sendMessage = () => {
-  if (isPainter.value) {
+  if (store.isPainter) {
     alert("Художник не может писать в чат!"); 
     return;
   }
@@ -47,7 +52,7 @@ const sendMessage = () => {
   message.isCorrect = isCorrectAnswer(message);
   
   if (message.isCorrect) {
-    let points = 10; // Кол-во баллов за отгаданный рисунок
+    let points = 10; // Кол-во баллов за отгаданный ри
     socket.emit('updateScore', { userName: user, increment: points });
     axios.patch(`/api/user/${store.userId}/update`, {
       points: points,
@@ -56,7 +61,7 @@ const sendMessage = () => {
       console.error('Ошибка:', error);
     });
 
-    blockChat.value = true;
+    store.blockChat = true;
     message.value = message.value;
     messages.value.push(message);
     messages.value.push({ userName: "Крокодил", answer: "Вы получили " + points + " баллов.", isCorrect: true});
@@ -90,7 +95,7 @@ const isCorrectAnswer = (message) => {
           placeholder="Отвечать тут..."
           v-model="newMessage"
           @keyup.enter="sendMessage"
-          :disabled="isPainter || blockChat"
+          :disabled="store.isPainter || store.blockChat"
       />
     </div>
   </div>
