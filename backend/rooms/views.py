@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.utils.crypto import get_random_string
 from .serializers import RoomSerializers
 from .models import Room
 from rest_framework import status
@@ -23,9 +24,10 @@ class RoomCreating(APIView):
         serializer = RoomSerializers(data=request.data)
         if serializer.is_valid():
             room = serializer.save()
-            print("ROOM Create")
-            print(room.players.all())
-            return Response({"status": "Room created", "id": room.id}, status=status.HTTP_201_CREATED)
+            room.token = get_random_string(16)
+            print(room.token)
+            room.save()
+            return Response({"status": "Room created", "id": room.id, "token": room.token}, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -47,6 +49,10 @@ class RoomUpdate(APIView):
         except Room.DoesNotExist:
             return Response({"error": "Комната не найдена"}, status=status.HTTP_404_NOT_FOUND)
         
+        token = request.data.get('token')
+        if room.is_private and token != room.token:
+            return Response({"error": "Неправильный токен"}, status=status.HTTP_403_FORBIDDEN)
+        
         if len(request.data.get("players", [])) == 0:
             if room.owner.id != int(request.data.get('user_id')):
                 return Response({"error": "Нет прав для изменения комнаты"}, status=status.HTTP_403_FORBIDDEN)
@@ -65,8 +71,7 @@ class RoomUpdate(APIView):
         if players:
             player_ids = [player['id'] for player in players if 'id' in player]
             room.players.add(*player_ids) 
-        print("ROOM UPDate")
-        print(room.players.all())
+
         room.save()
         serializer = RoomSerializers(room)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -114,10 +119,7 @@ class RoomExit(APIView):
                 room.save()
                 
         room.players.remove(user_id)
-        print(room.players.all())
         if room.players.count() == 0:
-            print(room.players)
-            print("ROOM DELETE")
             room.delete()
             return Response({"message": "Комната удалена, так как в ней больше нет игроков."}, status=status.HTTP_204_NO_CONTENT)
         

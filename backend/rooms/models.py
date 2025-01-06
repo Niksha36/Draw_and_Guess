@@ -10,6 +10,7 @@ class Room(models.Model):
     topic = models.CharField(max_length=255, default='Человек Паук')
     is_private = models.BooleanField(default=True)
     is_active = models.BooleanField(default=False)
+    token = models.CharField(max_length=16, blank=True, null=True)
 
     def __str__(self):
         return self.roomname

@@ -30,7 +30,8 @@ async function goToRoom() {
     });
 
     store.roomId = response.data.id;
-    router.push(`/room/${response.data.id}`);
+    store.token = response.data.token;
+    router.push(`/room/${response.data.id}?token=${response.data.token}`);
   } catch (error) {
     alert("Ошибка при создании комнаты. Повторите позже");
   }
@@ -53,7 +54,7 @@ async function goToGame() {
 
     if (openRoom) {
       await axios.patch(`/api/room/${openRoom.id}/update/`, {
-        players: [playerData]
+        players: [playerData],
       });
 
       store.roomId = openRoom.id;
@@ -79,7 +80,6 @@ function revertMenu() {
 function goToScore() {
   router.push('/score');
 }
-
 </script>
 
 <template>

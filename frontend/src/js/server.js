@@ -24,7 +24,7 @@ io.on('connection', (socket) => {
 
     socket.on('joinRoom', (room) => {
         socket.join(room);
-        socket.room = room; // Store room in socket object
+        socket.room = room;
         console.log(`User joined room: ${room}`);
     });
 
@@ -34,6 +34,10 @@ io.on('connection', (socket) => {
 
     socket.on('startGame', (data) => {
         io.to(socket.room).emit('startGame', data);
+    });
+
+    socket.on('token', (token) => {
+        io.to(socket.room).emit('token', token);
     });
 
     socket.on('chatMessage', ({ userName, message }) => {
@@ -51,12 +55,10 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });
+
     socket.on('correctAnswer', (answer) => {
         io.to(socket.room).emit('correctAnswer', answer);
     })
-    // socket.on('startTimer', (answer) => {
-    //     io.to(socket.room).emit('correctAnswer', answer);
-    // });
 
     socket.on('getOwnerName', (ownerName) => {
         io.to(socket.room).emit('getOwnerName', ownerName);

@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, onBeforeUnmount, defineProps } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 import { store } from "@/js/store.js";
 import { io } from 'socket.io-client';
@@ -10,10 +10,19 @@ const isOpen = ref(false);
 const isEmpty = ref(false);
 const selectedTopic = ref();
 const intervalId = ref(null);
+const showNotification = ref(false);
 const players = ref([]);
 const isOwner = ref(false);
+const route = useRoute();
 const router = useRouter();
 let isActive = false;
+
+const props = defineProps({
+  roomId: {
+    type: String,
+    required: true,
+  },
+});
 
 async function fetchRoomData() {
   try {
@@ -24,6 +33,10 @@ async function fetchRoomData() {
 
     if (Number(store.userId) == response.data.owner) {
       isOwner.value = true;
+    }
+
+    if (isOwner.value) {
+      socket.emit("token", store.token);
     }
   } catch (error) {
     console.error('Ошибка при получении данных комнаты:', error);
@@ -38,6 +51,7 @@ function updateRoom(theme) {
     is_active: isActive,
     topic: selectedTopic.value,
     user_id: store.userId,
+    token: store.token,
   })
   .catch(error => {
     console.error('Ошибка:', error);
@@ -55,7 +69,6 @@ async function goToMenu() {
       user_id: store.userId
     });
     
-
     router.push('/');
   } catch (error) {
     if (error.response && error.response.status === 404) {
@@ -83,10 +96,36 @@ async function startGame() {
   }
 }
 
-onMounted(() => {
-  fetchRoomData();
-  socket.emit('joinRoom', store.roomId)
+function copyLink() {
+  const roomLink = `http://localhost:5173/room/${store.roomId}?token=${store.token}`;
+  navigator.clipboard.writeText(roomLink)
+    .then(() => {
+      showNotification.value = true;
+      setTimeout(() => {
+        showNotification.value = false;
+      }, 2000); 
+    })
+    .catch(err => {
+      console.error('Ошибка при копировании ссылки:', err);
+    });
+}
 
+onMounted(async () => {
+  store.roomId = props.roomId;
+  store.token = route.query.token;
+
+  const playerData = {
+    id: store.userId,
+    username: store.username
+  };
+
+  await axios.patch(`/api/room/${store.roomId}/update/`, {
+    players: [playerData],
+    token: store.token,
+  });
+
+  fetchRoomData();
+  socket.emit('joinRoom', Number(store.roomId));
   socket.on('startGame', () => {
     store.isEnd = false;
     store.isDialogOpen = false;
@@ -94,11 +133,15 @@ onMounted(() => {
     store.correctAnswer = '';
     router.push(`/room/${store.roomId}/game`);
   });
+  socket.on('token', (token) => {
+    store.token = token;
+  })
 
   intervalId.value = setInterval(fetchRoomData, 500);
   
   axios.patch(`/api/user/${store.userId}/update`, {
     zeroing: true,
+    token: store.token,
   })
   .catch(error => {
     console.error('Ошибка:', error);
@@ -115,6 +158,9 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="background">
+    <div v-if="showNotification" class="notification">
+      Ссылка скопирована!
+    </div>
     <dialog v-if="isEmpty" open>
       <article class="dialog">
         <p>
@@ -159,7 +205,7 @@ onBeforeUnmount(() => {
           </div>
           <div class="buttons-wrapper">
             <div class="button" :class="{ 'disabled': !isOwner }" @click="isOwner ? startGame() : null">Играть</div>
-            <div class="button" :class="{ 'disabled': !isOwner }">Пригласить</div>
+            <div class="button" :class="{ 'disabled': !isOwner }" @click="copyLink">Пригласить</div>
           </div>
         </div>
       </div>
@@ -419,6 +465,39 @@ input[type="checkbox"]:focus {
 
 .dialog .button:hover {
   background-image: url("../assets/hover_button.svg");
+}
+
+.notification {
+  position: fixed; /* Фиксированное позиционирование */
+  bottom: 20px; /* Отступ снизу */
+  right: 20px; /* Отступ справа */
+  background-color: #5cffb6; /* Цвет фона */
+  color: #301a6b; /* Цвет текста */
+  padding: 10px 20px; /* Внутренние отступы */
+  border-radius: 5px; /* Скругление углов */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Тень */
+  font-weight: bold; /* Жирный текст */
+  z-index: 1000; /* Высокий z-index, чтобы было поверх других элементов */
+  animation: fadeInOut 2s ease-in-out; /* Анимация появления и исчезновения */
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
 }
 
 </style>

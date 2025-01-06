@@ -55,7 +55,7 @@ async function fetchRoomData() {
       score: player.gameScore,
       place: index + 1
     }));
-
+    
     if (players.length == 1) {
       socket.emit('endGame');
       return;

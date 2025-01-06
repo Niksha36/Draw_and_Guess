@@ -8,7 +8,15 @@ const routes = [
     { path: '/', component: Menu },
     { path: '/room/:id/game', component: Game },
     { path: '/score', component: score },
-    { path: '/room/:id', component: Room,},
+    {
+      path: '/room/:roomId',
+      component: Room,
+      props: true,
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/',
+    }
 ];
 
 const router = createRouter({

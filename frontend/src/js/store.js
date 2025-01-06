@@ -5,6 +5,7 @@ export const store = reactive({
     username: localStorage.getItem('username') || '',
     userId: localStorage.getItem('userId') || '',
     roomId: localStorage.getItem('roomId') || '',
+    token: localStorage.getItem('token') || '',
     correctAnswer: localStorage.getItem('correctAnswer') || '',
     isPainter: localStorage.getItem('isPainter') === 'true' || false,
     isEnd: localStorage.getItem('isEnd') === 'true' || false,
@@ -24,6 +25,9 @@ watch(() => store.userId, (newUserId) => {
 });
 watch(() => store.roomId, (newRoomId) => {
     localStorage.setItem('roomId', newRoomId);
+});
+watch(() => store.token, (newToken) => {
+    localStorage.setItem('token', newToken);
 });
 watch(() => store.isPainter, (newPainter) => {
     localStorage.setItem('isPainter', newPainter);

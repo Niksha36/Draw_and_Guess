@@ -24,6 +24,7 @@ const isPainter = ref(false);
 const correctAnswer = ref('');
 const progressValue = ref(0);
 const dialogProgressValue = ref(0);
+let notEnd = false;
 
 
 async function roomExit() {
@@ -34,13 +35,10 @@ async function roomExit() {
 
 async function goToMenu() {
   try {
-    socket.emit('changePainter');
     await roomExit();
-    socketDisconnect();
-
+    socket.emit('changePainter');
     router.push('/');
   } catch (error) {
-    socketDisconnect();
     if (error.response && error.response.status === 404) {
       socket.emit('changePainter');
       router.push('/');
@@ -107,10 +105,10 @@ async function changePainter() {
 
   socket.emit('resetTimer');
   const response = await axios.get(`/api/room/${store.roomId}/`);
+  
   isPainter.value = response.data.painter == store.userId;
   store.isPainter = isPainter.value;
   store.isDialogOpen = true;
-  console.log(store.isPainter)
   startDialogTimer();
 } 
 
@@ -150,7 +148,7 @@ function startTimer() {
 
   socket.on('time', (time) => {
     progressValue.value = time / 60 * 100 ;
-    console.log("MAIN TIMER", time)
+
     if (time >= 60) {
       store.beforeunmount = false;
 
@@ -170,7 +168,7 @@ function startDialogTimer() {
 
   socket.on('dialogTime', async (time) => {
     dialogProgressValue.value = time / 30 * 100;
-    console.log(time)
+
     if (time >= 10) {
       store.beforeunmount = false;
 
@@ -285,7 +283,7 @@ onMounted(async () => {
     store.isEnd = true;
     socket.off('dialogTime');
     socket.off('time');
-  })
+  });
 
   const canvas = document.getElementById('paintCanvas');
   const ctx = canvas.getContext('2d');
