@@ -228,10 +228,44 @@ function socketDisconnect() {
 window.addEventListener('beforeunload', (event) => {
   store.beforeunmount = true;
 });
+function drawOnCanvas(data) {
+  const canvas = document.getElementById('paintCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.moveTo(data.lastX, data.lastY);
 
+  if (data.isEraser) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.lineWidth = data.thickness;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(0,0,0,1)';
+
+    ctx.lineTo(data.x, data.y);
+    ctx.stroke();
+    ctx.restore();
+  } else {
+    ctx.lineWidth = data.thickness;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = data.color;
+
+    ctx.lineTo(data.x, data.y);
+    ctx.stroke();
+  }
+}
 onMounted(async () => {
   socket.emit('joinRoom', Number(store.roomId));
-  
+  socket.on('joinedRoom', async () => {
+    setTimeout(() => {
+      socket.emit('readyForDrawingData');
+    }, 100);
+  });
+
+  socket.on('allDrawings', (drawings) => {
+    drawings.forEach(drawData => {
+      drawOnCanvas(drawData);
+    });
+  });
   const response = await axios.get(`/api/room/${store.roomId}/`);
   isPainter.value = response.data.painter == store.userId;
   store.isPainter = isPainter.value;
@@ -253,7 +287,9 @@ onMounted(async () => {
       startTimer();
     }
   }
-
+  socket.on('clearCanvasStates', () => {
+    canvasStates.value = [];
+  });
   socket.on('startGame', () => {
     socket.off('dialogTime');
   })
@@ -290,17 +326,26 @@ onMounted(async () => {
   let lastX = 0;
   let lastY = 0;
 
-  const resizeCanvas = () => {
+  function resizeCanvas() {
+    const canvas = document.getElementById('paintCanvas');
+    const ctx = canvas.getContext('2d');
     const tempCanvas = document.createElement('canvas');
     const tempCtx = tempCanvas.getContext('2d');
+
+    // Save the current canvas content
     tempCanvas.width = canvas.width;
     tempCanvas.height = canvas.height;
     tempCtx.drawImage(canvas, 0, 0);
 
-    canvas.width = canvas.parentElement.clientWidth;
-    canvas.height = canvas.parentElement.clientHeight;
-    ctx.drawImage(tempCanvas, 0, 0);
-  };
+    // Resize the canvas
+    const newWidth = canvas.parentElement.clientWidth;
+    const newHeight = canvas.parentElement.clientHeight;
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+
+    // Redraw the saved content at the new resolution
+    ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, canvas.width, canvas.height);
+  }
 
   window.addEventListener('resize', resizeCanvas);
 
@@ -351,29 +396,7 @@ onMounted(async () => {
     lastY = y;
   };
 
-  const drawOnCanvas = (data) => {
-    ctx.beginPath();
-    ctx.moveTo(data.lastX, data.lastY);
 
-    if (data.isEraser) {
-      ctx.save();
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineWidth = data.thickness;
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = 'rgba(0,0,0,1)';
-
-      ctx.lineTo(data.x, data.y);
-      ctx.stroke();
-      ctx.restore();
-    } else {
-      ctx.lineWidth = data.thickness;
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = data.color;
-
-      ctx.lineTo(data.x, data.y);
-      ctx.stroke();
-    }
-  };
 
   const undoLastAction = (canvas, ctx) => {
     if (canvasStates.value.length > 0) {
@@ -722,6 +745,8 @@ onMounted(async () => {
 canvas {
   position: relative;
   z-index: 2;
+  width:100%;
+  height:100%
 }
 
 .main-wrapper {
