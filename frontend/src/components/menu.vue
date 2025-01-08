@@ -150,26 +150,18 @@ function goToScore() {
   height: 100%;
 }
 
+.go-to-menu-icon-wrapper {
+  cursor: pointer;
+}
 
 .menu-wrapper {
-  background-image: url("../assets/bg_content.svg");
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   position: relative;
-  will-change: auto;
 }
 
 .go-to-menu-icon-wrapper {
-  cursor: pointer;
   position: absolute;
-  top: 50px;
-  left: 80px;
+  top: 4.5%;
+  left: 2.8%;
 }
 
 .home-icon {
@@ -190,19 +182,21 @@ function goToScore() {
   align-items: center;
   justify-content: center;
   padding: 20px 15%;
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  background-position: center;
-  overflow: hidden;
+  z-index: 2;
 }
 
-.border-background-img {
+.menu-wrapper {
+  /*
+  background-image: url("../assets/bg_content.svg");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+   */
   width: 100%;
   height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .content {
@@ -212,7 +206,6 @@ function goToScore() {
   justify-content: center;
   align-items: center;
 }
-
 .wrapper {
   position: absolute;
   display: flex;
@@ -301,7 +294,6 @@ function goToScore() {
     height: 40px;
   }
 }
-
 @media (max-height: 460px) {
   .button {
     margin-top: 15px;
@@ -347,4 +339,5 @@ function goToScore() {
     background-size: contain;
   }
 }
+
 </style>

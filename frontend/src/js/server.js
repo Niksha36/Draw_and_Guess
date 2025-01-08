@@ -2,15 +2,30 @@ import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import { createClient } from 'redis';
 
 const app = express();
 const server = http.createServer(app);
+
+//функции для редиса
+const saveChatMessage = async (room, message) => {
+    await redisClient.rPush(`room:${room}:chatMessages`, JSON.stringify(message));
+};
+
+const getChatMessages = async (room) => {
+    const messages = await redisClient.lRange(`room:${room}:chatMessages`, 0, -1);
+    return messages.map(message => JSON.parse(message));
+};
+
+//соккет
 const io = new Server(server, {
     cors: {
         origin: 'http://localhost:5173',
         methods: ['GET', 'POST']
     }
 });
+const redisClient = createClient();
+redisClient.connect();
 
 let dialogTimer = null;
 let timer = null;
@@ -22,14 +37,31 @@ app.use(cors({
 io.on('connection', (socket) => {
     console.log('a user connected');
 
-    socket.on('joinRoom', (room) => {
+    socket.on('joinRoom', async (room) => {
         socket.join(room);
         socket.room = room;
         console.log(`User joined room: ${room}`);
+        socket.emit('joinedRoom');
+
+        // Retrieve and send chat messages to the user
+        const chatMessages = await getChatMessages(room);
+        socket.emit('chatHistory', chatMessages);
     });
 
-    socket.on('draw', (data) => {
-        socket.broadcast.to(socket.room).emit('draw', data);
+    socket.on('readyForDrawingData', async () => {
+        const room = socket.room;
+        if (room) {
+            const drawingData = await redisClient.lRange(`room:${room}:drawings`, 0, -1);
+            socket.emit('allDrawings', drawingData.map(data => JSON.parse(data)));
+        }
+    });
+
+    socket.on('draw', async (data) => {
+        const room = socket.room;
+        if (room) {
+            await redisClient.rPush(`room:${room}:drawings`, JSON.stringify(data));
+            socket.broadcast.to(room).emit('draw', data);
+        }
     });
 
     socket.on('startGame', (data) => {
@@ -40,16 +72,23 @@ io.on('connection', (socket) => {
         io.to(socket.room).emit('token', token);
     });
 
-    socket.on('chatMessage', ({ userName, message }) => {
-        io.to(socket.room).emit('chatMessage', { userName, text: message });
+    socket.on('chatMessage', async ({userName, message}) => {
+        const chatMessage = { userName, text: message };
+        await saveChatMessage(socket.room, chatMessage);
+        io.to(socket.room).emit('chatMessage', chatMessage);
     });
 
     socket.on('answerMessage', ({ userName, answer }) => {
         io.to(socket.room).emit('answerMessage', { userName, answer });
     });
 
-    socket.on('undo', (lastState) => {
-        socket.broadcast.to(socket.room).emit('undo', lastState);
+    socket.on('undo', async (lastState) => {
+        const room = socket.room;
+        if (room) {
+            // Remove the last drawing state from Redis
+            await redisClient.rPop(`room:${room}:drawings`);
+            socket.broadcast.to(room).emit('undo', lastState);
+        }
     });
 
     socket.on('disconnect', () => {
@@ -84,12 +123,23 @@ io.on('connection', (socket) => {
         io.in(socket.room).emit('dialogTime', time);
     });
 
-    socket.on('endRound', () => {
-        io.in(socket.room).emit('endRound');
+    socket.on('endRound', async () => {
+        const room = socket.room;
+        if (room) {
+            await redisClient.del(`room:${room}:drawings`);
+            io.to(socket.room).emit('clearCanvasStates');
+        }
+        io.in(room).emit('endRound');
     });
 
-    socket.on('endGame', () => {
-        io.in(socket.room).emit('endGame');
+    socket.on('endGame', async () => {
+        const room = socket.room;
+        if (room) {
+            await redisClient.del(`room:${room}:drawings`);
+            await redisClient.del(`room:${room}:chatMessages`);
+            await redisClient.del(`room:${room}`);
+        }
+        io.in(room).emit('endGame');
     });
 
     socket.on('startGame', () => {

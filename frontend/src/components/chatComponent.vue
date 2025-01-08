@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import {ref, onMounted, nextTick} from 'vue';
 import { io } from 'socket.io-client';
 import {store} from "@/js/store.js";
 
@@ -9,7 +9,8 @@ const newMessage = ref('');
 const user = store.username
 const correctAnswer = ref('');
 
-const scrollToBottom = () => {
+const scrollToBottom = async () => {
+  await nextTick();
   const chatMessages = document.querySelector('.chat-messages');
   if (chatMessages) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -18,6 +19,12 @@ const scrollToBottom = () => {
 
 onMounted(() => {
   socket.emit('joinRoom', Number(store.roomId));
+
+  socket.on('chatHistory', (chatMessages) => {
+    messages.value = chatMessages;
+    scrollToBottom();
+  });
+
   socket.on('chatMessage', (message) => {
     messages.value.push(message);
     scrollToBottom();
