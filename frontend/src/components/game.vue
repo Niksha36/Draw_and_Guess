@@ -24,7 +24,6 @@ const isPainter = ref(false);
 const correctAnswer = ref('');
 const progressValue = ref(0);
 const dialogProgressValue = ref(0);
-let notEnd = false;
 
 
 async function roomExit() {
@@ -269,7 +268,7 @@ onMounted(async () => {
   });
   socket.on('updateScore', (data) => {
     if (isPainter.value && data.userName != store.username) {
-      let points = 5; // Кол-во баллов за то, что рисунок аватора 
+      let points = 5; 
       socket.emit('updateScore', { userName: store.username, increment: points });
       axios.patch(`/api/user/${store.userId}/update`, {
         points: points,
@@ -306,11 +305,13 @@ onMounted(async () => {
   window.addEventListener('resize', resizeCanvas);
 
   const startPosition = (e) => {
-    painting = true;
-    const rect = canvas.getBoundingClientRect();
-    lastX = e.clientX - rect.left;
-    lastY = e.clientY - rect.top;
-    draw(e);
+    if (e.clientX && e.clientY) {
+      painting = true;
+      const rect = canvas.getBoundingClientRect();
+      lastX = e.clientX - rect.left;
+      lastY = e.clientY - rect.top;
+      draw(e);
+    }
   };
 
   const endPosition = () => {
