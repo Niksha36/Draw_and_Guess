@@ -14,6 +14,7 @@ export const store = reactive({
     beforeunmount: localStorage.getItem('beforeunmount') === 'true' || false,
     progressValue: localStorage.getItem('progressValue') || 0,
     dialogProgressValue: localStorage.getItem('dialogProgressValue') || 0,
+    answersCount: localStorage.getItem('answersCount') || 0,
 });
 
 // Watch for changes to the username and save to localStorage
@@ -52,5 +53,8 @@ watch(() => store.progressValue, (newProgressValue) => {
 });
 watch(() => store.dialogProgressValue, (newDialogProgressValue) => {
     localStorage.setItem('dialogProgressValue', newDialogProgressValue);
+});
+watch(() => store.answersCount, (newAnswersCount) => {
+    localStorage.setItem('answersCount', newAnswersCount);
 });
 

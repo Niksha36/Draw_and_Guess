@@ -15,13 +15,13 @@ const currentColor = ref('black');
 const brushThickness = ref(5);
 const isEraserActive = ref(false);
 const isEraserBlackedOut = ref(false);
+const endRound = ref(false);
 const router = useRouter();
 const words = ref([]);
 const allWords = ref([]);
 const canvasStates = ref([]);
 const showDialogOpen = ref(false);
 const isPainter = ref(false);
-const correctAnswer = ref('');
 const progressValue = ref(0);
 const dialogProgressValue = ref(0);
 
@@ -35,12 +35,12 @@ async function roomExit() {
 async function goToMenu() {
   try {
     await roomExit();
-    socket.emit('changePainter');
     router.push('/');
+    socket.emit('roomExit', store.blockChat);
   } catch (error) {
     if (error.response && error.response.status === 404) {
-      socket.emit('changePainter');
       router.push('/');
+      socket.emit('roomExit', store.blockChat);
     } else {
       alert("Ошибка при выходе из комнаты. Повторите позже.");
     }
@@ -97,17 +97,14 @@ async function getTopicWords() {
 }
 
 async function changePainter() {
-  if (isPainter.value) {
-    await axios.post(`/api/room/${store.roomId}/round`);
-    socket.emit('changePainter');
-  }
-
   socket.emit('resetTimer');
   const response = await axios.get(`/api/room/${store.roomId}/`);
   
   isPainter.value = response.data.painter == store.userId;
   store.isPainter = isPainter.value;
+  store.beforeunmount = false;
   store.isDialogOpen = true;
+
   startDialogTimer();
 } 
 
@@ -128,17 +125,12 @@ async function startNextRound(word) {
 
   clearCanvas();
   startTimer();
-
-  if (isPainter.value) {
-    socket.emit("startGame");
-  }
   
-  correctAnswer.value = word;
   store.correctAnswer = word;
+  
+  socket.emit("startGame");
   socket.emit('correctAnswer', {correctAnswer: word})
-  if (isPainter.value && !store.beforeunmount) {
-    socket.emit('startNextRound');
-  }
+  socket.emit('startNextRound');
 }
 
 function startTimer() {
@@ -149,30 +141,26 @@ function startTimer() {
     progressValue.value = time / 60 * 100 ;
 
     if (time >= 60) {
-      store.beforeunmount = false;
-
       if (isPainter.value) {
-          changePainter();
-          socket.emit('endRound');
-        }
+        socket.emit('endRound');
+      }
     }
   });
 }
 
 function startDialogTimer() {
   socket.off('dialogTime');
-  if (isPainter.value) {
-    socket.emit("startTimer");
+
+  if (isPainter.value && !store.beforeunmount) {
+    socket.emit('startTimer');
   }
 
   socket.on('dialogTime', async (time) => {
     dialogProgressValue.value = time / 30 * 100;
 
     if (time >= 10) {
-      store.beforeunmount = false;
-
       if (isPainter.value) {
-        await changePainter();
+        await axios.post(`/api/room/${store.roomId}/round`);
         socket.emit('changePainter');
         socket.emit('startTimer');
         store.isDialogOpen = false;
@@ -219,6 +207,7 @@ function socketDisconnect() {
   socket.off('changePainter');
   socket.off('startNextRound');
   socket.off('time');
+  socket.off('dialogTime');
   socket.off('updateScore');
   socket.off('undo');
   socket.off('draw');
@@ -260,54 +249,58 @@ onMounted(async () => {
       socket.emit('readyForDrawingData');
     }, 100);
   });
-
   socket.on('allDrawings', (drawings) => {
     drawings.forEach(drawData => {
       drawOnCanvas(drawData);
     });
   });
+
   const response = await axios.get(`/api/room/${store.roomId}/`);
   isPainter.value = response.data.painter == store.userId;
   store.isPainter = isPainter.value;
-  correctAnswer.value = store.correctAnswer;
-
-  if (!store.beforeunmount) {
-    store.isDialogOpen = true;
-    startDialogTimer();
-  }
 
   await getTopicWords(); 
   const [word1, word2] = getRandomWords(allWords.value);
   words.value = [word1, word2];
 
-  if (store.beforeunmount) {
+  if (!store.beforeunmount) {
+    store.isDialogOpen = true;
+    startDialogTimer();
+  } else {
     if (store.isDialogOpen) {
       startDialogTimer();
     } else {
       startTimer();
     }
   }
+
   socket.on('clearCanvasStates', () => {
     canvasStates.value = [];
   });
   socket.on('startGame', () => {
     socket.off('dialogTime');
-  })
+  });
   socket.on('changePainter', () => {
-    if (!isPainter.value) {
-      changePainter();
-    }
+    changePainter();
   });
   socket.on('startNextRound', () => {
     startTimer();
     clearCanvas();
+    endRound.value = false;
+  });
+  socket.on('endRound', async () => {
+    if (isPainter.value && !endRound.value) {
+      endRound.value = true;
+
+      await axios.post(`/api/room/${store.roomId}/round`);
+      socket.emit('changePainter');
+    }
   });
   socket.on('updateScore', (data) => {
     if (isPainter.value && data.userName != store.username) {
-      let points = 5; 
-      socket.emit('updateScore', { userName: store.username, increment: points });
+      socket.emit('updateScore', { userName: store.username, increment: 2, isOwner: true });
       axios.patch(`/api/user/${store.userId}/update`, {
-        points: points,
+        points: 2,
       })
       .catch(error => {
         console.error('Ошибка:', error);
@@ -492,7 +485,7 @@ onMounted(async () => {
       <article class="dialog">
         <p>
           <strong class="text">Пожалуйста, подождите</strong><br>
-          <strong v-if="correctAnswer != ''" style="margin-top: 10px">Было загадано слово: {{ correctAnswer }} </strong>
+          <strong v-if="store.correctAnswer != ''" style="margin-top: 10px">Было загадано слово: {{ store.correctAnswer }} </strong>
         </p>
         <progress class="custom-progress-dialog" :value="dialogProgressValue" max="30"></progress>
         <p> 
@@ -527,7 +520,7 @@ onMounted(async () => {
         <canvas draggable="false" id="paintCanvas"></canvas>
         <div v-if="isPainter && !store.isDialogOpen && !store.isEnd" class="word-display" style="position: absolute; top: 100px; left: 50%; transform: translateX(-50%); z-index: 1000;">
             <span>Загаданное слово: </span>
-            <strong>{{ correctAnswer }}</strong>
+            <strong>{{ store.correctAnswer }}</strong>
         </div>
         <div class="go-to-menu-icon-wrapper" @click="goToMenu" style="cursor: pointer">
           <div class="go-to-menu-icon">

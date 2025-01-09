@@ -78,8 +78,8 @@ io.on('connection', (socket) => {
         io.to(socket.room).emit('chatMessage', chatMessage);
     });
 
-    socket.on('answerMessage', ({ userName, answer }) => {
-        io.to(socket.room).emit('answerMessage', { userName, answer });
+    socket.on('answerMessage', ({ userName, answer, isCorrectPlayer }) => {
+        io.to(socket.room).emit('answerMessage', { userName, answer, isCorrectPlayer });
     });
 
     socket.on('undo', async (lastState) => {
@@ -111,8 +111,8 @@ io.on('connection', (socket) => {
         io.to(socket.room).emit('changePainter');
     });
 
-    socket.on('updateScore', (userName, increment) => {
-        io.in(socket.room).emit('updateScore', userName, increment);
+    socket.on('updateScore', (userName, increment, isOwner) => {
+        io.in(socket.room).emit('updateScore', userName, increment, isOwner);
     });
 
     socket.on('time', (time) => {
@@ -121,6 +121,10 @@ io.on('connection', (socket) => {
 
     socket.on('dialogTime', (time) => {
         io.in(socket.room).emit('dialogTime', time);
+    });
+
+    socket.on('roomExit', (answer) => {
+        io.in(socket.room).emit('roomExit', answer);
     });
 
     socket.on('endRound', async () => {

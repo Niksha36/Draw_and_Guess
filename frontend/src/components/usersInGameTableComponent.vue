@@ -17,14 +17,18 @@ import {io} from "socket.io-client";
 
 const socket = io('http://localhost:3000');
 const users = ref([]);
+const endRound = ref(false);
 const finallyScore = 40;
 
-
-function updateScore(userName, scoreIncrement) {
+function updateScore(userName, scoreIncrement, isOwner) {
   const user = users.value.find(user => user.name === userName);
   if (user) {
     user.score += scoreIncrement;
     updatePlaces();
+    
+    if (!isOwner) {
+      store.answersCount++;
+    }
 
     if (user.score >= finallyScore) {
       socket.emit('endGame');
@@ -34,9 +38,13 @@ function updateScore(userName, scoreIncrement) {
           increment: true,
         })
         .catch(error => {
+
           console.error('Ошибка:', error);
         });
       }
+    } else if (store.answersCount === users.value.length - 1 && !endRound.value) {
+        socket.emit('endRound');
+        endRound.value = true;
     }
   }
 }
@@ -55,10 +63,14 @@ async function fetchRoomData() {
       score: player.gameScore,
       place: index + 1
     }));
-    
+
     if (players.length == 1) {
       socket.emit('endGame');
       return;
+    }
+    
+    if (store.isPainter && store.answersCount === users.value.length - 1) {
+        socket.emit('endRound');
     }
 
     updatePlaces()
@@ -71,11 +83,19 @@ onMounted(() => {
   fetchRoomData();
   socket.emit('joinRoom', Number(store.roomId));
   socket.on('updateScore', (data) => {
-    updateScore(data.userName, data.increment);
+    updateScore(data.userName, data.increment, data.isOwner);
   });
   socket.on('changePainter', () => {
     fetchRoomData();
   });
+  socket.on('roomExit', (answer) => {
+    store.answersCount -= (answer && store.isPainter) ? 1 : 0;
+    fetchRoomData();
+  });
+  socket.on('endRound', () => {
+    endRound.value = false;
+    store.answersCount = 0;
+  })
 });
 </script>
 

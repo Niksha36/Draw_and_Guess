@@ -41,19 +41,28 @@ onMounted(() => {
   }
 });
 
-const sendMessage = () => {
-  if (store.isPainter) {
-    alert("Художник не может писать в чат!"); 
-    return;
+function getScoreIncrement(answersCount) {
+  switch (answersCount) {
+    case 0:
+      return 10;
+    case 1:
+      return 6;
+    case 2:
+      return 4;
+    default:
+      return 2;
   }
+}
 
-  if (newMessage.value.trim() === '') return;
+const sendMessage = () => {
+  if (store.isPainter || newMessage.value.trim() === '') return;
+
   const message = { userName: user, answer: newMessage.value };
   message.isCorrect = isCorrectAnswer(message);
-  
+  let points = getScoreIncrement(store.answersCount);
+
   if (message.isCorrect) {
-    let points = 10; // Кол-во баллов за отгаданный ри
-    socket.emit('updateScore', { userName: user, increment: points });
+    socket.emit('updateScore', { userName: user, increment: points, isOwnwer: false });
     axios.patch(`/api/user/${store.userId}/update`, {
       points: points,
     })
@@ -65,6 +74,7 @@ const sendMessage = () => {
     message.value = message.value;
     messages.value.push(message);
     messages.value.push({ userName: "Крокодил", answer: "Вы получили " + points + " баллов.", isCorrect: true});
+    socket.emit('answerMessage', { userName: "Крокодил", answer: "Игрок `" + user + "` угадал слово!", isCorrectPlayer: true });
   } else {
     socket.emit('answerMessage', message);
   }
@@ -81,7 +91,7 @@ const isCorrectAnswer = (message) => {
 <template>
   <div class="chat-wrapper">
     <div class="chat-messages-answer" style="overflow-y:auto; height: 100%">
-      <div v-for="message in messages" :key="message.id" :class="{'chat-message': true, 'correct-answer': message.isCorrect}">
+      <div v-for="message in messages" :key="message.id" :class="{'chat-message': true, 'correct-answer': message.isCorrect, 'correct-answer-player': message.isCorrectPlayer}">
         <strong class="chat-message-author">{{ message.userName }}</strong>
         <span class="chat-message-text">{{ message.answer }}</span>
       </div>
@@ -104,6 +114,9 @@ const isCorrectAnswer = (message) => {
 <style scoped>
 .correct-answer{
   color: #0ee30e;
+}
+.correct-answer-player {
+  color: #ffbf00;
 }
 .chat-message-text{
   margin-left: 10px;

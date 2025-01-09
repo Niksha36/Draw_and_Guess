@@ -131,6 +131,7 @@ onMounted(async () => {
     store.isDialogOpen = false;
     store.beforeunmount = false;
     store.correctAnswer = '';
+    store.answersCount = 0;
     router.push(`/room/${store.roomId}/game`);
   });
   socket.on('token', (token) => {
