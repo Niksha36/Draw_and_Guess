@@ -25,7 +25,6 @@ class RoomCreating(APIView):
         if serializer.is_valid():
             room = serializer.save()
             room.token = get_random_string(16)
-            print(room.token)
             room.save()
             return Response({"status": "Room created", "id": room.id, "token": room.token}, status=status.HTTP_201_CREATED)
 
@@ -119,6 +118,7 @@ class RoomExit(APIView):
                 room.save()
                 
         room.players.remove(user_id)
+        
         if room.players.count() == 0:
             room.delete()
             return Response({"message": "Комната удалена, так как в ней больше нет игроков."}, status=status.HTTP_204_NO_CONTENT)

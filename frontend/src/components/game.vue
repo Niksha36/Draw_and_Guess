@@ -27,20 +27,22 @@ const dialogProgressValue = ref(0);
 
 
 async function roomExit() {
-  axios.patch(`/api/room/${store.roomId}/exit/`, {
+  await axios.patch(`/api/room/${store.roomId}/exit/`, {
     user_id: store.userId
+  }).then(() => {
+    socket.emit('roomExit', store.blockChat);
+  }).catch((error) => {
+    console.error(error);
   });
 }
 
-async function goToMenu() {
+function goToMenu() {
   try {
-    await roomExit();
+    roomExit();
     router.push('/');
-    socket.emit('roomExit', store.blockChat);
   } catch (error) {
     if (error.response && error.response.status === 404) {
       router.push('/');
-      socket.emit('roomExit', store.blockChat);
     } else {
       alert("Ошибка при выходе из комнаты. Повторите позже.");
     }
@@ -49,9 +51,9 @@ async function goToMenu() {
 
 async function goToGame() {
   try {
-    await roomExit();
+    roomExit();
 
-    // Проверяем, авторизован ли пользователь
+    // Проверяем, авторизован ли польз            ователь
     if (store.username == '' || store.userId == '') {
       showDialog.value = true;
       return;
@@ -102,8 +104,12 @@ async function changePainter() {
   
   isPainter.value = response.data.painter == store.userId;
   store.isPainter = isPainter.value;
-  store.beforeunmount = false;
   store.isDialogOpen = true;
+  store.beforeunmount = false;
+
+  if (isPainter.value) {
+    socket.emit('startTimer');
+  }
 
   startDialogTimer();
 } 
@@ -150,14 +156,8 @@ function startTimer() {
 
 function startDialogTimer() {
   socket.off('dialogTime');
-
-  if (isPainter.value && !store.beforeunmount) {
-    socket.emit('startTimer');
-  }
-
   socket.on('dialogTime', async (time) => {
     dialogProgressValue.value = time / 30 * 100;
-
     if (time >= 10) {
       if (isPainter.value) {
         await axios.post(`/api/room/${store.roomId}/round`);
@@ -212,11 +212,12 @@ function socketDisconnect() {
   socket.off('undo');
   socket.off('draw');
   socket.disconnect();
-}
+};
 
-window.addEventListener('beforeunload', (event) => {
+window.addEventListener('beforeunload', async (event) => {
   store.beforeunmount = true;
 });
+
 function drawOnCanvas(data) {
   const canvas = document.getElementById('paintCanvas');
   const ctx = canvas.getContext('2d');
@@ -242,6 +243,7 @@ function drawOnCanvas(data) {
     ctx.stroke();
   }
 }
+
 onMounted(async () => {
   socket.emit('joinRoom', Number(store.roomId));
   socket.on('joinedRoom', async () => {
@@ -265,6 +267,9 @@ onMounted(async () => {
 
   if (!store.beforeunmount) {
     store.isDialogOpen = true;
+    if (isPainter.value) {
+      socket.emit('startTimer');
+    }
     startDialogTimer();
   } else {
     if (store.isDialogOpen) {
@@ -388,8 +393,6 @@ onMounted(async () => {
     lastX = x;
     lastY = y;
   };
-
-
 
   const undoLastAction = (canvas, ctx) => {
     if (canvasStates.value.length > 0) {

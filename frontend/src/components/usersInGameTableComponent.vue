@@ -18,7 +18,7 @@ import {io} from "socket.io-client";
 const socket = io('http://localhost:3000');
 const users = ref([]);
 const endRound = ref(false);
-const finallyScore = 40;
+const finallyScore = 160;
 
 function updateScore(userName, scoreIncrement, isOwner) {
   const user = users.value.find(user => user.name === userName);
