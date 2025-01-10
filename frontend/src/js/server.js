@@ -16,7 +16,11 @@ const getChatMessages = async (room) => {
     const messages = await redisClient.lRange(`room:${room}:chatMessages`, 0, -1);
     return messages.map(message => JSON.parse(message));
 };
-
+const getDrawingData = async (room) => {
+    const drawingData = await redisClient.lRange(`room:${room}:drawings`, 0, -1);
+    console.log(drawingData.map(data => JSON.parse(data)))
+    return drawingData.map(data => JSON.parse(data));
+}
 //соккет
 const io = new Server(server, {
     cors: {
@@ -41,19 +45,12 @@ io.on('connection', (socket) => {
         socket.join(room);
         socket.room = room;
         console.log(`User joined room: ${room}`);
-        socket.emit('joinedRoom');
-
         // Retrieve and send chat messages to the user
         const chatMessages = await getChatMessages(room);
         socket.emit('chatHistory', chatMessages);
-    });
 
-    socket.on('readyForDrawingData', async () => {
-        const room = socket.room;
-        if (room) {
-            const drawingData = await redisClient.lRange(`room:${room}:drawings`, 0, -1);
-            socket.emit('allDrawings', drawingData.map(data => JSON.parse(data)));
-        }
+        const drawingData = await getDrawingData(room)
+        socket.emit('allDrawings', drawingData);
     });
 
     socket.on('draw', async (data) => {

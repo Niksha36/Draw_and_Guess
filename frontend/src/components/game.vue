@@ -4,7 +4,7 @@ import chatComponent from './chatComponent.vue';
 import answersComponent from './AnswersComponent.vue';
 import axios from 'axios';
 import { store } from "@/js/store.js";
-import {onMounted, ref } from 'vue';
+import {nextTick, onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {io} from 'socket.io-client';
 
@@ -246,11 +246,7 @@ function drawOnCanvas(data) {
 
 onMounted(async () => {
   socket.emit('joinRoom', Number(store.roomId));
-  socket.on('joinedRoom', async () => {
-    setTimeout(() => {
-      socket.emit('readyForDrawingData');
-    }, 100);
-  });
+
   socket.on('allDrawings', (drawings) => {
     drawings.forEach(drawData => {
       drawOnCanvas(drawData);
