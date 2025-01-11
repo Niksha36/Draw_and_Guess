@@ -170,7 +170,7 @@ function goToScore() {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-
+  will-change: auto;
 }
 
 .background {
@@ -238,12 +238,14 @@ function goToScore() {
   height: 120px;
   border: 2px solid #000000;
   border-radius: 50%;
+  will-change: auto;
 }
 
 .avatar-img {
   height: 135px;
   border-radius: 50%;
   object-fit: cover;
+  will-change: auto;
 }
 
 .button {
@@ -261,6 +263,7 @@ function goToScore() {
   cursor: pointer;
   background-position: center;
   box-shadow: none;
+  will-change: auto;
 }
 
 .button:hover {
