@@ -1,13 +1,14 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, defineProps } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
-import { store } from "@/js/store.js";
-import { io } from 'socket.io-client';
+import {ref, onMounted, onBeforeUnmount, defineProps} from 'vue';
+import {useRouter, useRoute} from 'vue-router';
+import {store} from "@/js/store.js";
+import {io} from 'socket.io-client';
 
 const socket = io('http://localhost:3000');
 const isOpen = ref(false);
 const isEmpty = ref(false);
+const errorMaxPlayers = ref(false);
 const selectedTopic = ref();
 const intervalId = ref(null);
 const showNotification = ref(false);
@@ -15,6 +16,7 @@ const players = ref([]);
 const isOwner = ref(false);
 const route = useRoute();
 const router = useRouter();
+const selectedPlayersLimit = ref(14);
 let isActive = false;
 
 const props = defineProps({
@@ -30,6 +32,7 @@ async function fetchRoomData() {
     players.value = response.data.players;
     selectedTopic.value = response.data.topic;
     isOpen.value = !response.data.is_private;
+    selectedPlayersLimit.value = response.data.max_players;
 
     if (Number(store.userId) == response.data.owner) {
       isOwner.value = true;
@@ -47,6 +50,7 @@ function updateRoom(theme) {
   selectedTopic.value = theme;
 
   axios.patch(`/api/room/${store.roomId}/update/`, {
+    max_players: selectedPlayersLimit.value,
     is_private: !isOpen.value,
     is_active: isActive,
     topic: selectedTopic.value,
@@ -54,7 +58,11 @@ function updateRoom(theme) {
     token: store.token,
   })
   .catch(error => {
-    console.error('Ошибка:', error);
+    if (error.response && error.response.status === 400) {
+      errorMaxPlayers.value = true;
+    }else {
+      console.error('Ошибка:', error);
+    }
   });
 }
 
@@ -162,6 +170,17 @@ onBeforeUnmount(() => {
     <div v-if="showNotification" class="notification">
       Ссылка скопирована!
     </div>
+    <dialog v-if="errorMaxPlayers" open>
+      <article class="dialog">
+        <p>
+          <strong>❌️ Недопустимое количество игроков!</strong><br>
+            Количество игроков в комнате превышает выбранное максимальное количество игроков.
+        </p>
+        <button class="button" style="margin: 0; background-color: transparent; border: none"
+          @click="errorMaxPlayers = false">Закрыть
+        </button>
+      </article>
+    </dialog>
     <dialog v-if="isEmpty" open>
       <article class="dialog">
         <p>
@@ -176,7 +195,16 @@ onBeforeUnmount(() => {
     <div class="wrapper">
       <div class="top-wrapper">
         <div class="return-to-menu-btn" @click="goToMenu"></div>
-        <div class="privacy-switcher-wrapper" style="background: rgba(38, 28, 92, .5); border-radius: 15px; padding: 10px; margin-right: 20px">
+        <div class="user-limit-wrapper" style="margin-left: 25%;display:flex; flex-direction:row; justify-content:center; align-items:center; background: rgba(38, 28, 92, .5); border-radius: 15px; padding: 0.7%; gap: 10px; color: #5cffb6; text-shadow: var(--text-shadow);">
+          <img src="../assets/count_of_users.png">
+          Игроки
+          <select v-model="selectedPlayersLimit" 
+                  @click="isOwner ? updateRoom(theme) : null"
+                  style="margin:0!important; font-size:80%; padding-top:3%; padding-bottom:3%; background-color:white; color:rgba(38, 28, 92); font-weight: bold">
+            <option v-for="n in 14" :key="n">{{ n }}</option>
+          </select>
+        </div>
+        <div class="privacy-switcher-wrapper" style="background: rgba(38, 28, 92, .5); border-radius: 15px; padding: 1%; margin-right: 20px">
           <label style="color: #5cffb6; text-shadow: var(--text-shadow);">
             <input name="terms" type="checkbox" role="switch" v-model="isOpen" @change="updateRoom(selectedTopic)" :checked="isOpen" :disabled="!isOwner" />
             Открытая комната
@@ -185,7 +213,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="bottom-wrapper">
         <div class="left-wrapper">
-          <div class="text">ЧЕЛ. {{ players.length }}/14</div>
+          <div class="text">ЧЕЛ. {{ players.length }}/ {{ selectedPlayersLimit }}</div>
           <div class="player-container">
             <div class="player-card" v-for="player in players" :key="player.id">
               <div class="player-avatar"></div>
@@ -486,7 +514,10 @@ input[type="checkbox"]:focus {
   z-index: 1000; /* Высокий z-index, чтобы было поверх других элементов */
   animation: fadeInOut 2s ease-in-out; /* Анимация появления и исчезновения */
 }
-
+select:focus {
+  outline: 3px solid #5cffb6 !important;
+  box-shadow: none;
+}
 @keyframes fadeInOut {
   0% {
     opacity: 0;

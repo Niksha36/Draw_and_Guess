@@ -37,35 +37,12 @@ async function goToRoom() {
   }
 }
 async function goToGame() {
-  try {
     // Проверяем, авторизован ли пользователь
     if (store.username == '' || store.userId == '') {
       showDialog.value = true;
       return;
     }
-
-    const response = await axios.get('/api/room/open/');
-    const openRoom = response.data;
-
-    const playerData = {
-      id: store.userId,
-      username: store.username
-    };
-
-    if (openRoom) {
-      await axios.patch(`/api/room/${openRoom.id}/update/`, {
-        players: [playerData],
-      });
-
-      store.roomId = openRoom.id;
-      router.push(`/room/${openRoom.id}`);
-    } else {
-      showDialogOpen.value = true;
-    }
-  } catch (error) {
-    console.error(error);
-    alert("Ошибка при присоединении к игре. Повторите позже.");
-  }
+  router.push('/listOfRooms');
 }
 function logout() {
   if (store.username != '') {
@@ -269,8 +246,8 @@ function goToScore() {
 .button:hover {
   background-image: url("../assets/hover_button.svg");
 }
-
 .dialog {
+
   border-radius: 10px;
   max-width: 400px;
   max-height: 300px;
