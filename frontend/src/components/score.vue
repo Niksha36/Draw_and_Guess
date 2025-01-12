@@ -71,13 +71,26 @@ export default {
 }
 
 .background {
-    background: url("../assets/textura.png") no-repeat center center / cover, linear-gradient(215deg, rgba(116, 84, 249) 0%, rgb(115, 17, 176) 85%);
     height: 100vh;
     width: 100vw;
     display: flex;
     justify-content: center;
     align-items: start;
+    background: linear-gradient(215deg, rgb(116, 84, 249), rgb(115, 17, 176)); 
+    background-size: 400% 400%; 
+    animation: gradient-animation 10s ease-in-out infinite; 
+    transform: translateZ(0); 
+    will-change: background-position; 
 }
+
+@keyframes gradient-animation {
+    0% { background-position: 0% 50%; }
+    25% { background-position: 50% 50%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 50% 0%; }
+    100% { background-position: 0% 50%; }
+}
+
 
 .scoreboard {
     margin: 20px;
@@ -88,51 +101,12 @@ export default {
     justify-content: center;
     flex-direction: column;
     padding: 20px;
-    animation: gradient-animation 10s ease-in-out infinite;
-    transform: translateZ(0);
-    will-change: background-image;
+    background-color: rgba(255, 255, 255, 0.1); 
+    border-radius: 15px;
+    backdrop-filter: blur(10px); 
+    border: 4px rgba(29, 29, 27, .15) solid; 
+    box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15); 
 }
-
-@keyframes gradient-animation {
-    0% {
-        background-image: url("../assets/textura.png"),
-        linear-gradient(215deg, rgb(116, 84, 249), rgb(115, 17, 176));
-    }
-    12.5% {
-        background-image: url("../assets/textura.png"),
-        linear-gradient(230deg, rgb(130, 70, 220), rgb(100, 25, 190));
-    }
-    25% {
-        background-image: url("../assets/textura.png"),
-        linear-gradient(245deg, rgb(150, 60, 190), rgb(85, 35, 205));
-    }
-    37.5% {
-        background-image: url("../assets/textura.png"),
-        linear-gradient(260deg, rgb(170, 50, 160), rgb(70, 45, 220));
-    }
-    50% {
-        background-image: url("../assets/textura.png"),
-        linear-gradient(305deg, rgb(200, 50, 100), rgb(50, 100, 200));
-    }
-    62.5% {
-        background-image: url("../assets/textura.png"),
-        linear-gradient(280deg, rgb(185, 60, 130), rgb(60, 120, 210));
-
-    }
-    75% {
-        background-image: url("../assets/textura.png"),
-        linear-gradient(265deg, rgb(160, 70, 160), rgb(75, 140, 195));
-    }
-    87.5% {
-        background-image: url("../assets/textura.png"),
-        linear-gradient(250deg, rgb(140, 80, 190), rgb(90, 155, 180));
-    }
-    100% {
-        background-image: url("../assets/textura.png"),
-        linear-gradient(215deg, rgb(116, 84, 249), rgb(115, 17, 176));
-    }
-}
-
 
 .wrapper {
     border: 4px rgba(29, 29, 27, .15) solid;

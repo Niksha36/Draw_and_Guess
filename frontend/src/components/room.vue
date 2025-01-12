@@ -248,7 +248,11 @@ input[type="checkbox"]:focus {
   box-shadow: none;
 }
 .background {
-  background: url("../assets/textura.png") no-repeat center center / cover, linear-gradient(215deg, rgba(116, 84, 249) 0%, rgb(115, 17, 176) 85%);
+  background: linear-gradient(215deg, rgb(116, 84, 249), rgb(115, 17, 176)); 
+  background-size: 400% 400%; 
+  animation: gradient-animation 10s ease-in-out infinite; 
+  transform: translateZ(0); 
+  will-change: background-position; 
   height: 100vh;
   width: 100vw;
   display: flex;
@@ -273,6 +277,7 @@ input[type="checkbox"]:focus {
   align-items: center;
   flex-direction: column;
 }
+
 
 .top-wrapper {
   margin-top: 20px;
