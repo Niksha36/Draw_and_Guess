@@ -33,6 +33,7 @@ async function registerUser() {
       password: password.value, 
     });
 
+    store.userToken = response.data.token;
     store.username = username.value;
     store.userId = response.data.id;
     props.revertMenu();

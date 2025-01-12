@@ -18,7 +18,6 @@ const getChatMessages = async (room) => {
 };
 const getDrawingData = async (room) => {
     const drawingData = await redisClient.lRange(`room:${room}:drawings`, 0, -1);
-    console.log(drawingData.map(data => JSON.parse(data)))
     return drawingData.map(data => JSON.parse(data));
 }
 //соккет
@@ -65,8 +64,8 @@ io.on('connection', (socket) => {
         io.to(socket.room).emit('startGame', data);
     });
 
-    socket.on('token', (token) => {
-        io.to(socket.room).emit('token', token);
+    socket.on('token', (linkToken, token) => {
+        io.to(socket.room).emit('token', linkToken, token);
     });
 
     socket.on('chatMessage', async ({userName, message}) => {

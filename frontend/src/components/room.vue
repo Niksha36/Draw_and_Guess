@@ -39,7 +39,7 @@ async function fetchRoomData() {
         }
 
         if (isOwner.value) {
-            socket.emit("token", store.token);
+            socket.emit("token", store.linkToken, store.token);
         }
     } catch (error) {
         console.error('Ошибка при получении данных комнаты:', error);
@@ -54,11 +54,12 @@ function updateRoom(theme) {
         is_private: !isOpen.value,
         is_active: isActive,
         topic: selectedTopic.value,
+        user_token: store.userToken,
         user_id: store.userId,
-        token: store.token,
+        link_token: store.linkToken,
     })
         .catch(error => {
-            if (error.response && error.response.status === 400) {
+            if (error.response && error.response.status === 422) {
                 errorMaxPlayers.value = true;
             } else {
                 console.error('Ошибка:', error);
@@ -72,9 +73,10 @@ async function goToMenu() {
             showLogin.value = true;
             return;
         }
-
+        console.log(store.userToken)
         await axios.patch(`/api/room/${store.roomId}/exit/`, {
-            user_id: store.userId
+            user_id: store.userId,
+            user_token: store.userToken
         });
 
         router.push('/');
@@ -105,7 +107,7 @@ async function startGame() {
 }
 
 function copyLink() {
-    const roomLink = `http://localhost:5173/room/${store.roomId}?token=${store.token}`;
+    const roomLink = `http://localhost:5173/room/${store.roomId}?token=${store.linkToken}`;
     navigator.clipboard.writeText(roomLink)
         .then(() => {
             showNotification.value = true;
@@ -120,7 +122,7 @@ function copyLink() {
 
 onMounted(async () => {
     store.roomId = props.roomId;
-    store.token = route.query.token;
+    store.linkToken = route.query.token;
 
     const playerData = {
         id: store.userId,
@@ -129,7 +131,8 @@ onMounted(async () => {
 
     await axios.patch(`/api/room/${store.roomId}/update/`, {
         players: [playerData],
-        token: store.token,
+        user_token: store.userToken,
+        link_token: store.linkToken,
     });
 
     fetchRoomData();
@@ -142,19 +145,12 @@ onMounted(async () => {
         store.answersCount = 0;
         router.push(`/room/${store.roomId}/game`);
     });
-    socket.on('token', (token) => {
-        store.token = token;
+    socket.on('token', (linkToken, token) => {
+        store.linkToken = linkToken;
+        store.token = token;    
     })
 
     intervalId.value = setInterval(fetchRoomData, 500);
-
-    axios.patch(`/api/user/${store.userId}/update`, {
-        zeroing: true,
-        token: store.token,
-    })
-        .catch(error => {
-            console.error('Ошибка:', error);
-        });
 });
 
 onBeforeUnmount(() => {

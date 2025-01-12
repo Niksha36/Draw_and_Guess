@@ -35,6 +35,8 @@ function updateScore(userName, scoreIncrement, isOwner) {
 
       if (userName == store.username) {
         axios.patch(`/api/user/${store.userId}/update`, {
+          token: store.token,
+          room_id: store.roomId,
           increment: true,
         })
         .catch(error => {

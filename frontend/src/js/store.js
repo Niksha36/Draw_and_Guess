@@ -5,7 +5,9 @@ export const store = reactive({
     username: localStorage.getItem('username') || '',
     userId: localStorage.getItem('userId') || '',
     roomId: localStorage.getItem('roomId') || '',
+    userToken: localStorage.getItem('userToken') || '',
     token: localStorage.getItem('token') || '',
+    linkToken: localStorage.getItem('linkToken') || '',
     correctAnswer: localStorage.getItem('correctAnswer') || '',
     isPainter: localStorage.getItem('isPainter') === 'true' || false,
     isEnd: localStorage.getItem('isEnd') === 'true' || false,
@@ -24,11 +26,17 @@ watch(() => store.username, (newUsername) => {
 watch(() => store.userId, (newUserId) => {
     localStorage.setItem('userId', newUserId);
 });
+watch(() => store.userToken, (newUserToken) => {
+    localStorage.setItem('userToken', newUserToken);
+});
 watch(() => store.roomId, (newRoomId) => {
     localStorage.setItem('roomId', newRoomId);
 });
 watch(() => store.token, (newToken) => {
     localStorage.setItem('token', newToken);
+});
+watch(() => store.linkToken, (newLinkToken) => {
+    localStorage.setItem('linkToken', newLinkToken);
 });
 watch(() => store.isPainter, (newPainter) => {
     localStorage.setItem('isPainter', newPainter);
