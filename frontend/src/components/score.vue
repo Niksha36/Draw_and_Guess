@@ -33,6 +33,8 @@ export default {
 </script>
 <template>
     <div class="background">
+        <div class="bg">
+        </div>
         <div class="scoreboard">
             <div class="go-to-menu-icon" @click="goToMenu" style="cursor: pointer; ">
                 <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
@@ -51,7 +53,10 @@ export default {
                         <td class="score-text">{{ index + 1 }}</td>
                         <td class="score-text">{{ player.username }}</td>
                         <td class="score-text">{{
-                                player.winGames.toLocaleString('en-US', {minimumIntegerDigits: 5, useGrouping: false})
+                                player.winGames.toLocaleString('en-US', {
+                                    minimumIntegerDigits: 5,
+                                    useGrouping: false
+                                })
                             }}
                         </td>
                     </tr>
@@ -70,25 +75,43 @@ export default {
     margin: 5px;
 }
 
+.bg {
+    position: absolute;
+    background: url("../assets/textura.png");
+    background-size: cover;
+    height: 100vh;
+    width: 100vw;
+}
+
 .background {
     height: 100vh;
     width: 100vw;
     display: flex;
     justify-content: center;
     align-items: start;
-    background: linear-gradient(215deg, rgb(116, 84, 249), rgb(115, 17, 176)); 
-    background-size: 400% 400%; 
-    animation: gradient-animation 10s ease-in-out infinite; 
-    transform: translateZ(0); 
-    will-change: background-position; 
+    background: linear-gradient(215deg, rgb(246, 103, 0), rgb(139, 110, 255), rgb(84, 0, 133));
+    background-size: 400% 400%;
+    animation: gradient-animation 30s ease-in-out infinite;
+    transform: translateZ(0);
+    will-change: background-position;
 }
 
 @keyframes gradient-animation {
-    0% { background-position: 0% 50%; }
-    25% { background-position: 50% 50%; }
-    50% { background-position: 100% 50%; }
-    75% { background-position: 50% 0%; }
-    100% { background-position: 0% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+    25% {
+        background-position: 50% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    75% {
+        background-position: 50% 0%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 
@@ -101,11 +124,7 @@ export default {
     justify-content: center;
     flex-direction: column;
     padding: 20px;
-    background-color: rgba(255, 255, 255, 0.1); 
-    border-radius: 15px;
-    backdrop-filter: blur(10px); 
-    border: 4px rgba(29, 29, 27, .15) solid; 
-    box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15); 
+    z-index: 2;
 }
 
 .wrapper {
@@ -114,7 +133,6 @@ export default {
     -moz-box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
     box-shadow: inset 0px 2px 0px 0px rgba(255, 255, 255, .15), 0px 3px 0px 0px rgba(255, 255, 255, .15);
     -webkit-border-radius: 12px;
-    background-color: rgba(255, 255, 255, 0);
     width: 100%;
     height: 95%;
     display: flex;
@@ -140,7 +158,7 @@ th, td {
 }
 
 th {
-    background-color: rgba(38, 28, 92, .5);
+    background-color: rgba(74, 62, 145, 0.5);
     border: none;
 }
 
