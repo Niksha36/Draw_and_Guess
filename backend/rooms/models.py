@@ -5,6 +5,7 @@ from users.models import User
 class Room(models.Model):
     painter = models.ForeignKey(User, related_name='painter_rooms', on_delete=models.CASCADE)
     players = models.ManyToManyField(User, related_name='participating_rooms')
+    max_players = models.PositiveIntegerField(default=14)
     owner =  models.ForeignKey(User, on_delete=models.CASCADE)
     roomname = models.CharField(max_length=255)
     topic = models.CharField(max_length=255, default='Человек Паук')

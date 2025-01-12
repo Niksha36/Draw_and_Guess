@@ -5,7 +5,7 @@ from .models import Room
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db.models import Count
+from django.db.models import Count, F
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 import random
     
@@ -39,7 +39,7 @@ class RoomUpdate(APIView):
             200: OpenApiResponse(response=RoomSerializers, description="Комната успешно обновлена"),
             403: OpenApiResponse(description="Нет прав для изменения комнаты"),
             404: OpenApiResponse(description="Комната не найдена"),
-            400: OpenApiResponse(description="Ошибки валидации")
+            400: OpenApiResponse(description="Количество игроков в комнате больше, чем новое значение количества игроков")
         }
     )
     def patch(self, request, room_id):
@@ -60,7 +60,17 @@ class RoomUpdate(APIView):
         is_private = request.data.get('is_private')
         is_active = request.data.get('is_active')
         players = request.data.get('players')
-
+        max_players = request.data.get('max_players')
+        
+        if max_players is not None:
+            max_players = int(max_players)
+            current_players_count = room.players.count()
+            if max_players < current_players_count:
+                return Response(
+                    {"error": f"Невозможно установить max_players={max_players}, так как в комнате уже {current_players_count} игроков"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            room.max_players = max_players
         if topic is not None:
             room.topic = topic
         if is_private is not None:
@@ -77,16 +87,36 @@ class RoomUpdate(APIView):
     
 
 class OpenRoomList(APIView):
+    @extend_schema(
+        summary="Получение всех открытых комнат",
+        description="Позволяет получить все открытые и не заполненые комнаты.",
+        responses={
+            200: OpenApiResponse(response=RoomSerializers, description="Открытые комнаты успешно получены"),
+            404: OpenApiResponse(description="Ни одна открытая комната не найдена")
+        }
+    )
     def get(self, request):
-        open_room = Room.objects.filter(is_private=False).filter(is_active=False).annotate(num_players=Count('players')).filter(num_players__lt=14).first()
+        open_rooms = Room.objects.filter(is_active=False)\
+                            .filter(is_private=False)\
+                            .annotate(current_players_count=Count('players'))\
+                            .filter(current_players_count__lt=F('max_players'))
+
+        if open_rooms:
+            serializer = RoomSerializers(open_rooms, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         
-        if open_room:
-            serializer = RoomSerializers(open_room)
-            return Response(serializer.data)
-        return Response(None)
+        return Response(None, status=status.HTTP_404_NOT_FOUND)
     
     
 class RoomDetail(APIView):
+    @extend_schema(
+        summary="Получение информации о комнате",
+        description="Позволяет получить информацию о комнате (уникальный индификатор, кол-во участников ....).",
+        responses={
+            200: OpenApiResponse(response=RoomSerializers, description="Информация о комнате получена"),
+            404: OpenApiResponse(description="Комната с данным индификатором (id) не была найдена")
+        }
+    )
     def get(self, request, room_id):
         try:
             room = Room.objects.get(id=room_id)
@@ -97,6 +127,16 @@ class RoomDetail(APIView):
     
 
 class RoomExit(APIView):
+    @extend_schema(
+    summary="Выход из комнаты",
+    description="Позволяет игроку выйти из комнаты. Если это последний игрок, комната удаляется.",
+    responses={
+        200: OpenApiResponse(response=RoomSerializers, description="Игрок успешно вышел из комнаты"),
+        204: OpenApiResponse(description="Комната удалена, так как в ней больше нет игроков"),
+        400: OpenApiResponse(description="Не указан user_id"),
+        404: OpenApiResponse(description="Комната не найдена")
+    }
+)
     def patch(self, request, room_id):
         try:
             room = Room.objects.get(id=room_id)
@@ -133,6 +173,14 @@ class RoomExit(APIView):
     
 
 class RoundUpdate(APIView):
+    @extend_schema(
+        summary="Обновление раунда",
+        description="Обновляет текущего художника в комнате, переходя к следующему игроку.",
+        responses={
+            200: OpenApiResponse(response=RoomSerializers, description="Раунд успешно обновлён"),
+            404: OpenApiResponse(description="Комната не найдена")
+        }
+    )
     def post(self, request, room_id):
         try:
             room = Room.objects.get(id=room_id)

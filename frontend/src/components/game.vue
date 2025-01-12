@@ -3,8 +3,8 @@ import usersTableComponent from './usersInGameTableComponent.vue';
 import chatComponent from './chatComponent.vue';
 import answersComponent from './AnswersComponent.vue';
 import axios from 'axios';
-import { store } from "@/js/store.js";
-import {nextTick, onMounted, ref} from 'vue';
+import {store} from "@/js/store.js";
+import {onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {io} from 'socket.io-client';
 

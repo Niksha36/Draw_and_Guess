@@ -1,21 +1,39 @@
 <script setup>
+import axios from 'axios';
 import {useRouter} from 'vue-router';
-import {ref} from "vue";
+import {store} from "@/js/store.js";
+import {ref, onMounted, onBeforeUnmount} from "vue";
+
 const router = useRouter();
 const selectedRoom = ref(null);
-const rooms = ref([
-  { id: 1, name: 'Комната 1', users: 2 },
-  { id: 2, name: 'Комната 2', users: 3 },
-  { id: 3, name: 'Комната 3', users: 4 },
-  { id: 4, name: 'Комната 4', users: 5 },
-  { id: 5, name: 'Комната 5', users: 6 },
-  { id: 6, name: 'Комната 5', users: 7 },
-  { id: 7, name: 'Комната 5', users: 8 },
-  { id: 8, name: 'Комната 5', users: 9 },
-  { id: 9, name: 'Комната 5', users: 10 },
-]);
-function onPlayButton(){
+const rooms = ref([]);
+const intervalId = ref(null);
 
+async function onPlayButton(){
+    try {
+      // Проверяем, авторизован ли пользователь
+      if (store.username == '' || store.userId == '') {
+        showDialog.value = true;
+        return;
+      }
+    
+      const playerData = {
+        id: store.userId,
+        username: store.username
+      };
+    
+      if (selectedRoom.value) {
+        await axios.patch(`/api/room/${selectedRoom.value}/update/`, {
+          players: [playerData],
+        });
+    
+        store.roomId = selectedRoom.value;
+        router.push(`/room/${selectedRoom.value}`);
+      } 
+  } catch (error) {
+    console.error(error);
+    alert("Ошибка при присоединении к игре. Повторите позже.");
+  }
 }
 function goToMenu() {
   router.push('/');
@@ -23,6 +41,22 @@ function goToMenu() {
 function choseRoom(roomId) {
   selectedRoom.value = roomId;
 }
+async function fetchRooms() {
+  try {
+    const response = await axios.get(`api/room/open/`);
+    rooms.value = response.data;
+  } catch (error) {
+    rooms.value = [];
+    console.error('Ошибка при получении данных комнаты:', error);
+  }
+}
+onMounted(async () => {
+  fetchRooms();
+  intervalId.value = setInterval(fetchRooms, 500);
+});
+onBeforeUnmount(() => {
+  clearInterval(intervalId.value);
+});
 </script>
 
 <template>
@@ -40,10 +74,11 @@ function choseRoom(roomId) {
              :class="['room-template', { 'selected': selectedRoom === room.id }]"
              @click="choseRoom(room.id)">
           <img src="../assets/room-avatar.svg" alt="room-avatar" class="room-avatar">
-          <strong class="room-name" style="font-size:90%">{{ room.name }}</strong>
+          <strong class="room-name" style="font-size:90%">Комната игрока: {{ room.roomname }}</strong>
+          <strong class="room-name" style="font-size:90%">Тема: {{ room.topic }}</strong>
           <div class="room-players" style="display:flex; justify-content:center; align-items:center">
             <img src="../assets/count_of_users.png" alt="player-count-img" style="width:35%" >
-            <span class="text-number-of-users" style="margin-left:5%">{{ room.users }}/14</span>
+            <span class="text-number-of-users" style="margin-left:5%">{{ room.players.length }}/{{ room.max_players }}</span>
           </div>
         </div>
       </div>
@@ -94,6 +129,7 @@ h1{
   display:flex;
   border-radius: 10px;
   height:75%;
+  width: 100%;
   padding:10px;
   gap:1.5%;
   flex-wrap: wrap;
