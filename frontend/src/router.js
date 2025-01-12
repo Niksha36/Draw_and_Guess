@@ -3,9 +3,11 @@ import Menu from './components/menu.vue';
 import Game from './components/game.vue';
 import Room from './components/room.vue';
 import score from './components/score.vue';
+import listOfRooms from "@/components/listOfRooms.vue";
 
 const routes = [
     { path: '/', component: Menu },
+    { path:'/listOfRooms', component: listOfRooms },
     { path: '/room/:id/game', component: Game },
     { path: '/score', component: score },
     {

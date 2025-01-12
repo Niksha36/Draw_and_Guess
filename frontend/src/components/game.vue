@@ -183,6 +183,10 @@ const changeColor = (color, event) => {
   if (selectedColor.value) {
     selectedColor.value.style.border = 'none';
   }
+  if (isEraserActive.value) {
+    isEraserBlackedOut.value = false;
+    isEraserActive.value = false;
+  }
   selectedColor.value = event.target;
   selectedColor.value.style.border = '2px solid black';
   currentColor.value = color;
@@ -475,8 +479,8 @@ onMounted(async () => {
           {{ word }}
         </button>
         <progress class="custom-progress-dialog" :value="dialogProgressValue" max="30"></progress>
-        <p> 
-          <strong> Время на выбор темы </strong>
+        <p  style="margin-bottom:0px">
+          <strong  style="font-size:18px"> Время на выбор темы </strong>
         </p>
       </article>
     </dialog>
@@ -487,8 +491,8 @@ onMounted(async () => {
           <strong v-if="store.correctAnswer != ''" style="margin-top: 10px">Было загадано слово: {{ store.correctAnswer }} </strong>
         </p>
         <progress class="custom-progress-dialog" :value="dialogProgressValue" max="30"></progress>
-        <p> 
-          <strong> Ожидайте выбора темы </strong>
+        <p  style="margin-bottom:0px">
+          <strong style="font-size:18px"> Ожидайте выбора темы </strong>
         </p>
       </article>
     </dialog>
@@ -517,8 +521,8 @@ onMounted(async () => {
       <div class="paint-board-wrapper" draggable="false">
         <img src="../assets/bg_content.svg" alt="Background" class="background-image" draggable="false">
         <canvas draggable="false" id="paintCanvas"></canvas>
-        <div v-if="isPainter && !store.isDialogOpen && !store.isEnd" class="word-display" style="position: absolute; top: 100px; left: 50%; transform: translateX(-50%); z-index: 1000;">
-            <span>Загаданное слово: </span>
+        <div v-if="isPainter && !store.isDialogOpen && !store.isEnd" class="word-display" style="position: absolute; top: -4.5%; left: 50%; transform: translateX(-50%); z-index: 1000;">
+            <span style="font-size: 14px; color: #171556; font-weight: 500">Загаданное слово:</span>
             <strong>{{ store.correctAnswer }}</strong>
         </div>
         <div class="go-to-menu-icon-wrapper" @click="goToMenu" style="cursor: pointer">
@@ -589,43 +593,55 @@ onMounted(async () => {
 </style>
 
 <style scoped>
+
 .chat-banner{
-  position: absolute;
-  padding:1.5% 0;
-  width: 40%;
-  top: -12%;
-  text-transform: uppercase;
-  text-align: center;
-  box-shadow: 0px 6px 0px 0px #301a6b;
-  background: deeppink;
-  border-radius: 7px;
-  color: #5cffb6;
-  font-weight: bold;
-  right:0;
-  text-shadow: var(--text-shadow);
+position: absolute;
+padding:1.5% 0;
+width: 40%;
+top: -12%;
+text-transform: uppercase;
+text-align: center;
+box-shadow: 0px 6px 0px 0px #301a6b;
+background: deeppink;
+border-radius: 7px;
+color: #5cffb6;
+font-weight: bold;
+right:0;
+text-shadow: var(--text-shadow);
 }
 
 .word-display{
-  background-image: url("../assets/button.svg");
-  width: 100%;
-  height: 66px;
+/*
+background-image: url("../assets/button.svg");
+width: 100%;
+height: 66px;
+*/
+  background: rgba(192, 192, 255, 0.98);
+  box-shadow:
+      0px 6px 0px 0px #301a6b,
+      0 4px 8px rgb(92, 255, 182), 0 6px 20px rgb(92, 255, 182);
+  padding: 7px 20px;
   border: none;
-  color: #ffd506;
-  text-shadow: rgb(23, 21, 86) 4px 0px 0px, rgb(23, 21, 86) 3.87565px .989616px 0px, rgb(23, 21, 86) 3.51033px 1.9177px 0px, rgb(23, 21, 86) 2.92676px 2.72656px 0px, rgb(23, 21, 86) 2.16121px 3.36588px 0px, rgb(23, 21, 86) 1.26129px 3.79594px 0px, rgb(23, 21, 86) .282949px 3.98998px 0px, rgb(23, 21, 86) -.712984px 3.93594px 0px, rgb(23, 21, 86) -1.66459px 3.63719px 0px, rgb(23, 21, 86) -2.51269px 3.11229px 0px, rgb(23, 21, 86) -3.20457px 2.39389px 0px, rgb(23, 21, 86) -3.69721px 1.52664px 0px, rgb(23, 21, 86) -3.95997px .56448px 0px, rgb(23, 21, 86) -3.97652px -.432781px 0px, rgb(23, 21, 86) -3.74583px -1.40313px 0px, rgb(23, 21, 86) -3.28224px -2.28625px 0px, rgb(23, 21, 86) -2.61457px -3.02721px 0px, rgb(23, 21, 86) -1.78435px -3.57996px 0px, rgb(23, 21, 86) -.843183px -3.91012px 0px, rgb(23, 21, 86) .150409px -3.99717px 0px, rgb(23, 21, 86) 1.13465px -3.8357px 0px, rgb(23, 21, 86) 2.04834px -3.43574px 0px, rgb(23, 21, 86) 2.83468px -2.82216px 0px, rgb(23, 21, 86) 3.44477px -2.03312px 0px, rgb(23, 21, 86) 3.84068px -1.11766px 0px, rgb(23, 21, 86) 3.9978px -.132717px 0px;
   font-size: 24px;
+  border-radius: 20px;
   text-align: center;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   margin-top: 30px;
   background-position: center;
-  box-shadow: none;
 }
-
+.word-display strong{
+  text-shadow: rgb(23, 21, 86) 4px 0px 0px, rgb(23, 21, 86) 3.87565px .989616px 0px, rgb(23, 21, 86) 3.51033px 1.9177px 0px, rgb(23, 21, 86) 2.92676px 2.72656px 0px, rgb(23, 21, 86) 2.16121px 3.36588px 0px, rgb(23, 21, 86) 1.26129px 3.79594px 0px, rgb(23, 21, 86) .282949px 3.98998px 0px, rgb(23, 21, 86) -.712984px 3.93594px 0px, rgb(23, 21, 86) -1.66459px 3.63719px 0px, rgb(23, 21, 86) -2.51269px 3.11229px 0px, rgb(23, 21, 86) -3.20457px 2.39389px 0px, rgb(23, 21, 86) -3.69721px 1.52664px 0px, rgb(23, 21, 86) -3.95997px .56448px 0px, rgb(23, 21, 86) -3.97652px -.432781px 0px, rgb(23, 21, 86) -3.74583px -1.40313px 0px, rgb(23, 21, 86) -3.28224px -2.28625px 0px, rgb(23, 21, 86) -2.61457px -3.02721px 0px, rgb(23, 21, 86) -1.78435px -3.57996px 0px, rgb(23, 21, 86) -.843183px -3.91012px 0px, rgb(23, 21, 86) .150409px -3.99717px 0px, rgb(23, 21, 86) 1.13465px -3.8357px 0px, rgb(23, 21, 86) 2.04834px -3.43574px 0px, rgb(23, 21, 86) 2.83468px -2.82216px 0px, rgb(23, 21, 86) 3.44477px -2.03312px 0px, rgb(23, 21, 86) 3.84068px -1.11766px 0px, rgb(23, 21, 86) 3.9978px -.132717px 0px;
+  color: #fbd60a;
+  text-transform: uppercase;
+  font-size: 24px;
+}
 .brush-thickness-text {
   font-weight: bold;
   font-size: 18px;
-  color: #5cffb6;
+    color: #5cffb6;
   text-shadow: var(--text-shadow);
   text-transform: uppercase;
 }
@@ -790,9 +806,10 @@ canvas {
 }
 
 .dialog {
+  padding-left:5%;
+  padding-right:5%;
   border-radius: 10px;
-  max-width: 400px;
-  max-height: 300px;
+  flex-wrap: wrap;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -895,5 +912,10 @@ canvas {
     max-width: 150px
   }
 }
+@media (min-width: 576px)  {
+dialog article {
+  width: auto !important;
+}
 
+}
 </style>

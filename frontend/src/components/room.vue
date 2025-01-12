@@ -15,6 +15,7 @@ const players = ref([]);
 const isOwner = ref(false);
 const route = useRoute();
 const router = useRouter();
+const selectedPlayersLimit = ref(14);
 let isActive = false;
 
 const props = defineProps({
@@ -176,7 +177,14 @@ onBeforeUnmount(() => {
     <div class="wrapper">
       <div class="top-wrapper">
         <div class="return-to-menu-btn" @click="goToMenu"></div>
-        <div class="privacy-switcher-wrapper" style="background: rgba(38, 28, 92, .5); border-radius: 15px; padding: 10px; margin-right: 20px">
+        <div class="user-limit-wrapper" style="margin-left: 25%;display:flex; flex-direction:row; justify-content:center; align-items:center; background: rgba(38, 28, 92, .5); border-radius: 15px; padding: 0.7%; gap: 10px; color: #5cffb6; text-shadow: var(--text-shadow);">
+          <img src="../assets/count_of_users.png">
+          Игроки
+          <select v-model="selectedPlayersLimit" style="margin:0!important; font-size:80%; padding-top:3%; padding-bottom:3%; background-color:white; color:rgba(38, 28, 92); font-weight: bold">
+            <option v-for="n in 14" :key="n">{{ n }}</option>
+          </select>
+        </div>
+        <div class="privacy-switcher-wrapper" style="background: rgba(38, 28, 92, .5); border-radius: 15px; padding: 1%; margin-right: 20px">
           <label style="color: #5cffb6; text-shadow: var(--text-shadow);">
             <input name="terms" type="checkbox" role="switch" v-model="isOpen" @change="updateRoom(selectedTopic)" :checked="isOpen" :disabled="!isOwner" />
             Открытая комната
@@ -481,7 +489,10 @@ input[type="checkbox"]:focus {
   z-index: 1000; /* Высокий z-index, чтобы было поверх других элементов */
   animation: fadeInOut 2s ease-in-out; /* Анимация появления и исчезновения */
 }
-
+select:focus {
+  outline: 3px solid #5cffb6 !important;
+  box-shadow: none;
+}
 @keyframes fadeInOut {
   0% {
     opacity: 0;
