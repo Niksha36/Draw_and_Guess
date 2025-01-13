@@ -199,7 +199,7 @@ onBeforeUnmount(() => {
                         Игроки
                         <select v-model="selectedPlayersLimit"
                                 @click="isOwner ? updateRoom(theme) : null"
-                                style="margin:0!important; font-size:80%;padding: 0 30px 0 5px; background-color:white; color:rgba(38, 28, 92); font-weight: bold">
+                                style="margin:0!important; font-size:80%;padding: 0 35px 0 5px; background-color:white; color:rgba(38, 28, 92); font-weight: bold">
                             <option v-for="n in 14" :key="n">{{ n }}</option>
                         </select>
                     </div>
@@ -230,7 +230,7 @@ onBeforeUnmount(() => {
                              :key="theme"
                              :class="{ 'selected': selectedTopic === theme, 'disabled': !isOwner }"
                              @click="isOwner ? updateRoom(theme) : null">
-                            <div class="theme-text">{{ theme }}</div>
+                            <div class="theme-text theme-container-text">{{ theme }}</div>
                         </div>
                     </div>
                     <div class="buttons-wrapper">
@@ -481,6 +481,10 @@ input[type="checkbox"]:focus {
 }
 
 .theme-container {
+  display:flex;
+  word-break: break-all;
+  justify-content:center;
+  align-items:center;
     background: rgb(255, 255, 255);
     width: 32%;
     height: 27%;
@@ -503,6 +507,7 @@ input[type="checkbox"]:focus {
     margin: 8px 0 5px;
     text-align: center;
     text-transform: uppercase;
+    margin-bottom:0!important;
 }
 
 .buttons-wrapper {
@@ -594,7 +599,9 @@ select:focus {
     outline: 3px solid #5cffb6 !important;
     box-shadow: none;
 }
-
+label{
+  margin:0
+}
 @keyframes fadeInOut {
     0% {
         opacity: 0;
@@ -613,7 +620,34 @@ select:focus {
         transform: translateY(20px);
     }
 }
-
+.theme-container-text{
+  margin:0
+ }
+@media (max-width: 851px){
+  .theme-container-text{
+    font-size:0.4rem!important;
+  }
+}
+@media (max-width: 800px){
+  select{
+    padding-right:10px!important;
+    background:white!important;
+  }
+.user-limit-wrapper{
+  padding-right:10px
+}
+}
+@media (max-width: 726px){
+  .privacy-switcher-wrapper label, .user-limit-wrapper{
+    font-size: 0.8rem;
+  }
+  input{
+    margin:3px
+  }
+  .wrapper{
+    width:90%
+  }
+}
 @media (max-height: 500px) {
     .text {
         font-size: 15px;
