@@ -7,7 +7,7 @@ import {store} from "@/js/store.js";
 import {onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {io} from 'socket.io-client';
-
+import RulesDialog from './RulesDialog.vue';
 
 const socket = io('http://localhost:3000');
 const selectedColor = ref(null);
@@ -248,6 +248,19 @@ function drawOnCanvas(data) {
   }
 }
 
+
+
+
+const showRulesDialog = ref(false);
+
+function openRulesDialog() {
+  console.log("button was clicked")
+  showRulesDialog.value = true;
+}
+
+function closeRulesDialog() {
+  showRulesDialog.value = false;
+}
 onMounted(async () => {
   socket.emit('joinRoom', Number(store.roomId));
 
@@ -531,6 +544,14 @@ onMounted(async () => {
             <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
           </div>
         </div>
+        <div class="game-rules-wrapper" @click="openRulesDialog" style="cursor: pointer">
+          <div class="game-rules-button">
+            <img src="../assets/small_button_border.svg" alt="border" class="home-border">
+            <img src="../assets/img_info.png" width="30" alt="Information" class="info-icon">
+          </div>
+        </div>
+        <RulesDialog v-if="showRulesDialog" @close="closeRulesDialog"/>
+
         <div class="draw-time-wrapper" style="position: absolute; padding-left:3%; padding-right: 10%; display:flex; justify-content: space-between; align-items: center; bottom: 5%; z-index: 100;  width: 100%">
           <img src="../assets/ic_time.svg" alt="time" width="10%">
           <progress class="custom-progress" style="color: deeppink!important;margin: 0; width: 100%" :value="progressValue" max="100"></progress>
@@ -593,7 +614,27 @@ onMounted(async () => {
 </style>
 
 <style scoped>
+.game-rules-wrapper {
+  position: absolute;
+  z-index: 100;
+  right: 4%;
+  top: 5%;
+}
 
+.game-rules-button {
+  position: relative;
+  z-index: 100;
+}
+/*
+.home-border {
+}
+ */
+.info-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 .chat-banner{
 position: absolute;
 padding:1.5% 0;
@@ -883,7 +924,16 @@ canvas {
     justify-content: center;
     align-items: center;
   }
-
+  .game-rules-button{
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .info-icon{
+    width: 15px
+  }
   .tools-panel {
     padding: 5px;
   }
@@ -918,4 +968,6 @@ dialog article {
 }
 
 }
+
+
 </style>
