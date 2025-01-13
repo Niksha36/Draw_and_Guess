@@ -32,7 +32,8 @@ async function goToRoom() {
 
     store.roomId = response.data.id;
     store.token = response.data.token;
-    router.push(`/room/${response.data.id}?token=${response.data.token}`);
+    store.linkToken = response.data.link_token;
+    router.push(`/room/${response.data.id}?token=${response.data.link_token}`);
   } catch (error) {
     alert("Ошибка при создании комнаты. Повторите позже");
   }

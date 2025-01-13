@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from .models import User
+from rooms.models import Room
 from .serializers import UserSerializer
 from .serializers import LoginSerializer
 
@@ -21,7 +22,7 @@ class UserRegistration(APIView):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            return Response({"status": "User created", "id": user.id}, status=status.HTTP_201_CREATED)
+            return Response({"status": "User created", "id": user.id, "token": user.token}, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -40,7 +41,7 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
-            return Response({'id': user.id}, status=status.HTTP_200_OK)
+            return Response({'id': user.id, 'token': user.token}, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
     
@@ -64,11 +65,17 @@ class UserUpdate(APIView):
     def patch(self, request, user_id):
         try:
             user = User.objects.get(id=user_id)
+            room_id = request.data.get('room_id')
+            room = Room.objects.get(id=room_id)
         except User.DoesNotExist:
             return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
+        except Room.DoesNotExist:
+            return Response({"error": "Комната не найдена"}, status=status.HTTP_404_NOT_FOUND)
         
-        if request.data.get("zeroing"):
-            user.gameScore = 0
+        token = request.data.get('token')
+        if room.token != token: 
+            return Response({"error": "Нет прав для изменения пользователя"}, status=status.HTTP_403_FORBIDDEN)
+        
         if request.data.get("points"):
             points = request.data.get("points", 0)
             user.gameScore += points

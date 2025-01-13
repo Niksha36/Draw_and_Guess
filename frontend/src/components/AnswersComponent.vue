@@ -64,6 +64,8 @@ const sendMessage = () => {
   if (message.isCorrect) {
     socket.emit('updateScore', { userName: user, increment: points, isOwnwer: false });
     axios.patch(`/api/user/${store.userId}/update`, {
+      token: store.token,
+      room_id: store.roomId,
       points: points,
     })
     .catch(error => {

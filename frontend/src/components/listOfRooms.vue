@@ -26,6 +26,7 @@ async function onPlayButton(){
       if (selectedRoom.value) {
         await axios.patch(`/api/room/${selectedRoom.value}/update/`, {
           players: [playerData],
+          user_token: store.userToken
         });
     
         store.roomId = selectedRoom.value;

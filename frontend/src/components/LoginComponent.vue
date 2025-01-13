@@ -29,6 +29,7 @@ async function loginUser() {
     });
 
     store.userId = response.data.id;
+    store.userToken = response.data.token;
     store.username = username.value;
     emit('login-success');
   } catch (error) {

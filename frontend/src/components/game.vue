@@ -31,7 +31,8 @@ const dialogProgressValue = ref(0);
 
 async function roomExit() {
   await axios.patch(`/api/room/${store.roomId}/exit/`, {
-    user_id: store.userId
+    user_id: store.userId,
+    user_token: store.userToken
   }).then(() => {
     socket.emit('roomExit', store.blockChat);
   }).catch((error) => {
@@ -163,7 +164,9 @@ function startDialogTimer() {
     dialogProgressValue.value = time / 30 * 100;
     if (time >= 10) {
       if (isPainter.value) {
-        await axios.post(`/api/room/${store.roomId}/round`);
+        await axios.post(`/api/room/${store.roomId}/round`, {
+          token: store.token
+        });
         socket.emit('changePainter');
         socket.emit('startTimer');
         store.isDialogOpen = false;
@@ -313,7 +316,9 @@ onMounted(async () => {
     if (isPainter.value && !endRound.value) {
       endRound.value = true;
 
-      await axios.post(`/api/room/${store.roomId}/round`);
+      await axios.post(`/api/room/${store.roomId}/round`, {
+          token: store.token
+        });
       socket.emit('changePainter');
     }
   });
@@ -321,6 +326,8 @@ onMounted(async () => {
     if (isPainter.value && data.userName != store.username) {
       socket.emit('updateScore', { userName: store.username, increment: 2, isOwner: true });
       axios.patch(`/api/user/${store.userId}/update`, {
+        token: store.token,
+        room_id: store.roomId,
         points: 2,
       })
       .catch(error => {
