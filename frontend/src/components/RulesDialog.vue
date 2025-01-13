@@ -1,5 +1,6 @@
 <script setup>
 import {defineEmits} from 'vue';
+import {playClickSound, playHoverSound} from "@/js/soundEffects.js";
 
 const emit = defineEmits(['close']);
 
@@ -19,7 +20,7 @@ function closeDialog() {
     padding:20px;
 
     ">
-      <img src="../assets/img-close-button.png" alt="close-button" class="close-button" @click="closeDialog"
+      <img src="../assets/img-close-button.png" alt="close-button" class="close-button" @click="closeDialog" @mouseenter="playHoverSound" @mousedown="playClickSound"
            style="
         position: absolute;
         top: 2%;

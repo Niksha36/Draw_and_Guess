@@ -4,6 +4,7 @@ import {ref, onMounted, onBeforeUnmount, defineProps} from 'vue';
 import {useRouter, useRoute} from 'vue-router';
 import {store} from "@/js/store.js";
 import {io} from 'socket.io-client';
+import {playClickSound, playHoverSound} from "@/js/soundEffects.js";
 
 const socket = io('http://localhost:3000');
 const isOpen = ref(false);
@@ -176,7 +177,7 @@ onBeforeUnmount(() => {
                     <strong>❌️ Недопустимое количество игроков!</strong><br>
                     Количество игроков в комнате превышает выбранное максимальное количество игроков.
                 </p>
-                <button class="button" style="margin: 0; background-color: transparent; border: none"
+                <button class="button" style="margin: 0; background-color: transparent; border: none" @mouseover="playHoverSound" @mousedown="playClickSound"
                         @click="errorMaxPlayers = false">Закрыть
                 </button>
             </article>
@@ -187,14 +188,14 @@ onBeforeUnmount(() => {
                     <strong>🤼 Недостаточно игроков!</strong><br>
                     Для начала игры необходимо хотя бы два игрока.
                 </p>
-                <button class="button" style="margin: 0; background-color: transparent; border: none"
+                <button class="button" style="margin: 0; background-color: transparent; border: none" @mouseover="playHoverSound" @mousedown="playClickSound"
                         @click="isEmpty = false">Закрыть
                 </button>
             </article>
         </dialog>
         <div class="wrapper">
             <div class="top-wrapper">
-                <div class="return-to-menu-btn" @click="goToMenu"></div>
+                <div class="return-to-menu-btn" @click="goToMenu" @mouseenter="playHoverSound" @mousedown="playClickSound"></div>
                 <div class="btn-wrapper">
                     <div class="user-limit-wrapper"
                     >
@@ -207,7 +208,7 @@ onBeforeUnmount(() => {
                         </select>
                     </div>
                     <div class="privacy-switcher-wrapper">
-                        <label class="lbl" style=" color: #5cffb6; text-shadow: var(--text-shadow);">
+                        <label class="lbl" style=" color: #5cffb6; text-shadow: var(--text-shadow);" @mouseenter="playHoverSound" @mousedown="playClickSound">
                             <input name="terms" type="checkbox" role="switch" v-model="isOpen"
                                    @change="updateRoom(selectedTopic)" :checked="isOpen" :disabled="!isOwner"/>
                             Открытая комната
@@ -228,7 +229,7 @@ onBeforeUnmount(() => {
                 <div class="right-wrapper">
                     <div class="text">Тема</div>
                     <div class="theme-wrapper">
-                        <div class="theme-container"
+                        <div class="theme-container" @mouseenter="playHoverSound" @mousedown="playClickSound"
                              v-for="theme in ['Человек Паук', 'Животные', 'Наука', 'Мультфильмы', 'Кино', 'Игры']"
                              :key="theme"
                              :class="{ 'selected': selectedTopic === theme, 'disabled': !isOwner }"
@@ -237,10 +238,10 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
                     <div class="buttons-wrapper">
-                        <div class="button" :class="{ 'disabled': !isOwner }" @click="isOwner ? startGame() : null">
+                        <div class="button" :class="{ 'disabled': !isOwner }" @click="isOwner ? startGame() : null" @mouseover="playHoverSound" @mousedown="playClickSound">
                             Играть
                         </div>
-                        <div class="button" :class="{ 'disabled': !isOwner }" @click="copyLink">Пригласить</div>
+                        <div class="button" :class="{ 'disabled': !isOwner }" @click="copyLink" @mouseover="playHoverSound" @mousedown="playClickSound">Пригласить</div>
                     </div>
                 </div>
             </div>

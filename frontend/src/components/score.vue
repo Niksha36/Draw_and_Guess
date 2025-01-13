@@ -1,6 +1,7 @@
 <script>
 import axios from "axios";
 import {useRouter} from 'vue-router';
+import {playClickSound, playHoverSound} from "@/js/soundEffects.js";
 
 export default {
     setup() {
@@ -16,6 +17,8 @@ export default {
         this.fetchUsers();
     },
     methods: {
+      playClickSound,
+      playHoverSound,
         async fetchUsers() {
             try {
                 const response = await axios.get('/api/users/');
@@ -36,7 +39,7 @@ export default {
         <div class="bg">
         </div>
         <div class="scoreboard">
-            <div class="go-to-menu-icon" @click="goToMenu" style="cursor: pointer; ">
+            <div class="go-to-menu-icon" @click="goToMenu" @mouseenter="playHoverSound" @mousedown="playClickSound" style="cursor: pointer; ">
                 <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
             </div>
             <div class="wrapper" style="position: relative">

@@ -6,6 +6,7 @@ import RegistrationComponent from './RegistrationComponent.vue';
 import {ref, defineEmits, defineProps} from "vue";
 import router from "@/router.js";
 import {store} from "@/js/store.js";
+import {playClickSound, playHoverSound} from "@/js/soundEffects.js";
 
 const props = defineProps(['revertMenu']);
 const showPassword = ref(false);
@@ -65,7 +66,7 @@ async function loginUser() {
     <img :src="showPassword ? showPasswordIcon : hidePasswordIcon" alt="" class="toggle-eye" @click="togglePassword">
   </div>
 
-  <button @click="loginUser" style="margin-top: 17px">Войти</button>
+  <button @click="loginUser" style="margin-top: 17px" @mouseover="playHoverSound" @mousedown="playClickSound" >Войти</button>
   <p style="text-align: center; margin:0; margin-top: 10px; font-size: 18px">Еще нет аккаунта? <a href="" @click.prevent = showRegistrationForm>Зарегистрироваться</a></p>
 </div>
   <RegistrationComponent v-else :revert-menu="props.revertMenu"/>
