@@ -4,6 +4,7 @@ import {ref, onMounted, onBeforeUnmount, defineProps} from 'vue';
 import {useRouter, useRoute} from 'vue-router';
 import {store} from "@/js/store.js";
 import {io} from 'socket.io-client';
+import {playClickSound, playHoverSound} from "@/js/soundEffects.js";
 
 const socket = io('http://localhost:3000');
 const isOpen = ref(false);
@@ -19,7 +20,7 @@ const router = useRouter();
 const selectedPlayersLimit = ref(14);
 const themes =  ['Человек Паук', 'Животные', 'Наука', 
                  'Мультфильмы', 'Кино', 'Игры',
-                 'Еда', 'Бытовая техника', 'Инструменты', 
+                 'Еда', 'Бытовая техника', 'Инструменты',
                 ];
 let isActive = false;
 
@@ -176,7 +177,7 @@ onBeforeUnmount(() => {
                     <strong>❌️ Недопустимое количество игроков!</strong><br>
                     Количество игроков в комнате превышает выбранное максимальное количество игроков.
                 </p>
-                <button class="button" style="margin: 0; background-color: transparent; border: none"
+                <button class="button" style="margin: 0; background-color: transparent; border: none" @mouseover="playHoverSound" @mousedown="playClickSound"
                         @click="errorMaxPlayers = false">Закрыть
                 </button>
             </article>
@@ -187,14 +188,14 @@ onBeforeUnmount(() => {
                     <strong>🤼 Недостаточно игроков!</strong><br>
                     Для начала игры необходимо хотя бы два игрока.
                 </p>
-                <button class="button" style="margin: 0; background-color: transparent; border: none"
+                <button class="button" style="margin: 0; background-color: transparent; border: none" @mouseover="playHoverSound" @mousedown="playClickSound"
                         @click="isEmpty = false">Закрыть
                 </button>
             </article>
         </dialog>
         <div class="wrapper">
             <div class="top-wrapper">
-                <div class="return-to-menu-btn" @click="goToMenu"></div>
+                <div class="return-to-menu-btn" @click="goToMenu" @mouseenter="playHoverSound" @mousedown="playClickSound"></div>
                 <div class="btn-wrapper">
                     <div class="user-limit-wrapper">
                         <img class=pli src="../assets/count_of_users.png">
@@ -202,12 +203,12 @@ onBeforeUnmount(() => {
                         <select v-model="selectedPlayersLimit"
                                 @click="isOwner ? updateRoom(theme) : null"
                                 :disabled="!isOwner"
-                                style="margin:0!important; font-size:80%;padding: 0 30px 0 5px; background-color:white; color:rgba(38, 28, 92); font-weight: bold">
-                            <option v-for="n in 13" :key="n">{{ n+1 }}</option>
+                                style="margin:0!important; font-size:80%;padding: 0 35px 0 5px; background-color:white; color:rgba(38, 28, 92); font-weight: bold">
+                            <option v-for="n in 13" :key="n">{{ n + 1 }}</option>
                         </select>
                     </div>
                     <div class="privacy-switcher-wrapper">
-                        <label class="lbl" style=" color: #5cffb6; text-shadow: var(--text-shadow);">
+                        <label class="lbl" style=" color: #5cffb6; text-shadow: var(--text-shadow);" @mouseenter="playHoverSound" @mousedown="playClickSound">
                             <input name="terms" type="checkbox" role="switch" v-model="isOpen"
                                    @change="updateRoom(selectedTopic)" :checked="isOpen" :disabled="!isOwner"/>
                             Открытая комната
@@ -228,19 +229,19 @@ onBeforeUnmount(() => {
                 <div class="right-wrapper">
                     <div class="text">Тема</div>
                     <div class="theme-wrapper">
-                        <div class="theme-container"
+                        <div class="theme-container" @mouseenter="playHoverSound" @mousedown="playClickSound"
                              v-for="theme in themes"
                              :key="theme"
                              :class="{ 'selected': selectedTopic === theme, 'disabled': !isOwner }"
                              @click="isOwner ? updateRoom(theme) : null">
-                            <div class="theme-text">{{ theme }}</div>
+                            <div class="theme-text theme-container-text">{{ theme }}</div>
                         </div>
                     </div>
                     <div class="buttons-wrapper">
-                        <div class="button" :class="{ 'disabled': !isOwner }" @click="isOwner ? startGame() : null">
+                        <div class="button" :class="{ 'disabled': !isOwner }" @click="isOwner ? startGame() : null" @mouseover="playHoverSound" @mousedown="playClickSound">
                             Играть
                         </div>
-                        <div class="button" :class="{ 'disabled': !isOwner }" @click="copyLink">Пригласить</div>
+                        <div class="button" :class="{ 'disabled': !isOwner }" @click="copyLink" @mouseover="playHoverSound" @mousedown="playClickSound">Пригласить</div>
                     </div>
                 </div>
             </div>
@@ -484,6 +485,10 @@ input[type="checkbox"]:focus {
 }
 
 .theme-container {
+  display:flex;
+  word-break: break-all;
+  justify-content:center;
+  align-items:center;
     background: rgb(255, 255, 255);
     width: 32%;
     height: 27%;
@@ -506,6 +511,7 @@ input[type="checkbox"]:focus {
     margin: 8px 0 5px;
     text-align: center;
     text-transform: uppercase;
+    margin-bottom:0!important;
 }
 
 .buttons-wrapper {
@@ -597,7 +603,9 @@ select:focus {
     outline: 3px solid #5cffb6 !important;
     box-shadow: none;
 }
-
+label{
+  margin:0
+}
 @keyframes fadeInOut {
     0% {
         opacity: 0;
@@ -616,7 +624,34 @@ select:focus {
         transform: translateY(20px);
     }
 }
-
+.theme-container-text{
+  margin:0
+ }
+@media (max-width: 851px){
+  .theme-container-text{
+    font-size:0.4rem!important;
+  }
+}
+@media (max-width: 800px){
+  select{
+    padding-right:10px!important;
+    background:white!important;
+  }
+.user-limit-wrapper{
+  padding-right:10px
+}
+}
+@media (max-width: 726px){
+  .privacy-switcher-wrapper label, .user-limit-wrapper{
+    font-size: 0.8rem;
+  }
+  input{
+    margin:3px
+  }
+  .wrapper{
+    width:90%
+  }
+}
 @media (max-height: 500px) {
     .text {
         font-size: 15px;

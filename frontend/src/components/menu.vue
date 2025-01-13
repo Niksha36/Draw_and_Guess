@@ -5,6 +5,7 @@ import axios from 'axios';
 import '@fortawesome/fontawesome-free/css/all.css';
 import LoginComponent from './LoginComponent.vue';
 import { store } from '@/js/store.js';
+import {playClickSound, playHoverSound} from "@/js/soundEffects.js";
 
 
 const router = useRouter();
@@ -67,7 +68,7 @@ function goToScore() {
           <strong>🔒 Вам нужно авторизоваться!</strong><br>
           Для начала игры, пожалуйста, авторизуйтесь.
         </p>
-        <button class="button" style="margin: 0; background-color: transparent; border: none"
+        <button class="button" @mouseover="playHoverSound" @mousedown="playClickSound" style="margin: 0; background-color: transparent; border: none"
           @click="showDialog = false">Закрыть
         </button>
       </article>
@@ -78,14 +79,14 @@ function goToScore() {
           <strong>⏰️ Нет доступных комнат!</strong><br>
           Создайте свою комнату или подождите пока появятся новые.
         </p>
-        <button class="button" style="margin: 0; background-color: transparent; border: none"
+        <button class="button" @mouseover="playHoverSound" @mousedown="playClickSound" style="margin: 0; background-color: transparent; border: none"
           @click="showDialogOpen = false">Закрыть
         </button>
       </article>
     </dialog>
     <div class="menu-wrapper">
       <img src="../assets/bg_content.svg" class="border-background-img" alt="">
-      <div v-if="showLogin" class="go-to-menu-icon-wrapper" @click="revertMenu">
+      <div v-if="showLogin" class="go-to-menu-icon-wrapper" @click="revertMenu"  @mouseenter="playHoverSound" @mousedown="playClickSound">
         <div class="go-to-menu-icon">
           <img src="../assets/small_button_border.svg" alt="border" class="home-border">
           <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
@@ -97,16 +98,16 @@ function goToScore() {
           <div class="avatar">
             <img src="../assets/avatar.svg" alt="Avatar" class="avatar-img">
           </div>
-          <button class="logout" style="border: none" @click="logout">
+          <button class="logout" style="border: none" @click="logout" @mouseenter="playHoverSound" @mousedown="playClickSound">
             <i class="fas fa-sign-out-alt"></i> {{ buttonText }}
           </button>
-          <div class="button-play button" @click="goToGame">
+          <div class="button-play button" @click="goToGame" @mouseover="playHoverSound" @mousedown="playClickSound">
             Играть
           </div>
-          <div class="button-play button" @click="goToRoom">
+          <div class="button-play button" @click="goToRoom" @mouseover="playHoverSound" @mousedown="playClickSound">
             Создать игру
           </div>
-          <div class="button-play button" @click="goToScore">
+          <div class="button-play button" @click="goToScore" @mouseover="playHoverSound" @mousedown="playClickSound">
             Рейтинг
           </div>
         </div>

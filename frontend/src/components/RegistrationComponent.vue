@@ -5,6 +5,7 @@ import {ref, defineProps} from "vue";
 import showPasswordIcon from "@/assets/show-password.svg";
 import hidePasswordIcon from "@/assets/hide-password.svg";
 import {store} from "@/js/store.js";
+import {playClickSound, playHoverSound} from "@/js/soundEffects.js";
 
 const props = defineProps(['revertMenu']);
 const showLogin = ref(false); 
@@ -80,7 +81,7 @@ async function registerUser() {
            autocomplete="current-password"
     />
   </div>
-  <button @click="registerUser" style="margin-top: 17px; width: 100%">Зарегистрироваться</button> 
+  <button @click="registerUser" style="margin-top: 17px; width: 100%" @mouseover="playHoverSound" @mousedown="playClickSound">Зарегистрироваться</button>
   <p style="margin:0; margin-top: 10px; font-size: 18px">Уже есть аккаунт? <a href="" @click.prevent = showLoginForm>Войти</a></p>
 </div>
   <LoginComponent v-else />

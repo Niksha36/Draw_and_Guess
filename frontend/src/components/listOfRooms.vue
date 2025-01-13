@@ -3,6 +3,7 @@ import axios from 'axios';
 import {useRouter} from 'vue-router';
 import {store} from "@/js/store.js";
 import {ref, onMounted, onBeforeUnmount} from "vue";
+import {playClickSound, playHoverSound} from "@/js/soundEffects.js";
 
 const router = useRouter();
 const selectedRoom = ref(null);
@@ -64,14 +65,14 @@ onBeforeUnmount(() => {
   <div class="background">
     <div class="list-of-rooms" style="position:relative" >
       <div class="go-to-menu-icon-wrapper" @click="goToMenu" style="cursor: pointer">
-        <div class="go-to-menu-icon">
+        <div class="go-to-menu-icon" @mouseenter="playHoverSound" @mousedown="playClickSound">
           <img src="../assets/small_button_border.svg" alt="border" class="home-border" >
           <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
         </div>
       </div>
       <h1>Комнаты</h1>
-      <div class="rooms">
-        <div v-for="room in rooms" :key="room.id"
+      <div class="rooms" >
+        <div @mouseenter="playHoverSound" @mousedown="playClickSound" v-for="room in rooms" :key="room.id"
              :class="['room-template', { 'selected': selectedRoom === room.id }]"
              @click="choseRoom(room.id)">
           <img src="../assets/room-avatar.svg" alt="room-avatar" class="room-avatar">
@@ -83,7 +84,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
-      <button class="play-button" @click="onPlayButton">
+      <button class="play-button" @click="onPlayButton" @mouseenter="playHoverSound" @mousedown="playClickSound">
         <img src="" alt="" class="play-button-img">
         <span>играть</span>
       </button>

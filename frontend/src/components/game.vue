@@ -7,6 +7,9 @@ import {store} from "@/js/store.js";
 import {onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {io} from 'socket.io-client';
+import RulesDialog from './RulesDialog.vue';
+import {playClickSound, playHoverSound} from "@/js/soundEffects.js";
+import drawingSound from "../sound_pack/drawing-sound.mp3"
 
 
 const socket = io('http://localhost:3000');
@@ -224,6 +227,19 @@ function drawOnCanvas(data) {
   }
 }
 
+
+
+
+const showRulesDialog = ref(false);
+
+function openRulesDialog() {
+  console.log("button was clicked")
+  showRulesDialog.value = true;
+}
+
+function closeRulesDialog() {
+  showRulesDialog.value = false;
+}
 onMounted(async () => {
   socket.emit('joinRoom', Number(store.roomId));
 
@@ -327,9 +343,16 @@ onMounted(async () => {
 
   window.addEventListener('resize', resizeCanvas);
 
+  let drawingAudio = new Audio(drawingSound);
+  drawingAudio.loop = true;
   const startPosition = (e) => {
     if (e.clientX && e.clientY) {
       painting = true;
+
+      if (store.isPainter) {
+        drawingAudio.play();
+      }
+      
       const rect = canvas.getBoundingClientRect();
       lastX = e.clientX - rect.left;
       lastY = e.clientY - rect.top;
@@ -339,6 +362,7 @@ onMounted(async () => {
 
   const endPosition = () => {
     painting = false;
+    drawingAudio.pause();
     ctx.beginPath();
   };
 
@@ -369,7 +393,6 @@ onMounted(async () => {
 
     socket.emit('draw', drawData);
     drawOnCanvas(drawData);
-
     lastX = x;
     lastY = y;
   };
@@ -426,7 +449,7 @@ onMounted(async () => {
           <strong>⏰️ Нет доступных комнат!</strong><br>
           Создайте свою комнату или подождите пока появятся новые.
         </p>
-        <button class="button" style="margin: 0; background-color: transparent; border: none"
+        <button class="button" style="margin: 0; background-color: transparent; border: none" @mouseover="playHoverSound" @mousedown="playClickSound"
           @click="showDialogOpen = false">Закрыть
         </button>
       </article>
@@ -436,10 +459,10 @@ onMounted(async () => {
         <p>
           <strong class="text">Игра окончена!</strong>
         </p>
-        <button class="button" style="margin: 0; background-color: transparent; border: none" @click="goToGame">
+        <button class="button" style="margin: 0; background-color: transparent; border: none" @click="goToGame" @mouseover="playHoverSound" @mousedown="playClickSound">
           Играть
         </button>
-        <button class="button" style="margin: 0; background-color: transparent; border: none" @click="goToMenu">
+        <button class="button" style="margin: 0; background-color: transparent; border: none" @click="goToMenu" @mouseover="playHoverSound" @mousedown="playClickSound">
           Вернуться в меню
         </button>
       </article>
@@ -455,6 +478,7 @@ onMounted(async () => {
             class="button"
             style="margin: 5px; background-color: transparent; border: none"
             @click="startNextRound(word)"
+            @mouseover="playHoverSound" @mousedown="playClickSound"
         >
           {{ word }}
         </button>
@@ -505,12 +529,20 @@ onMounted(async () => {
             <span style="font-size: 14px; color: #171556; font-weight: 500">Загаданное слово:</span>
             <strong>{{ store.correctAnswer }}</strong>
         </div>
-        <div class="go-to-menu-icon-wrapper" @click="goToMenu" style="cursor: pointer">
-          <div class="go-to-menu-icon">
+        <div class="go-to-menu-icon-wrapper" @click="goToMenu" style="cursor: pointer" @mouseenter="playHoverSound" @mousedown="playClickSound">
+          <div class="go-to-menu-icon" >
             <img src="../assets/small_button_border.svg" alt="border" class="home-border">
             <img src="../assets/ic_home.svg" alt="home-icon" width="33px" class="home-icon">
           </div>
         </div>
+        <div class="game-rules-wrapper" @click="openRulesDialog" style="cursor: pointer" @mouseenter="playHoverSound" @mousedown="playClickSound">
+          <div class="game-rules-button" >
+            <img src="../assets/small_button_border.svg" alt="border" class="home-border">
+            <img src="../assets/img_info.png" width="30" alt="Information" class="info-icon">
+          </div>
+        </div>
+        <RulesDialog v-if="showRulesDialog" @close="closeRulesDialog"/>
+
         <div class="draw-time-wrapper" style="position: absolute; padding-left:3%; padding-right: 10%; display:flex; justify-content: space-between; align-items: center; bottom: 5%; z-index: 100;  width: 100%">
           <img src="../assets/ic_time.svg" alt="time" width="10%">
           <progress class="custom-progress" style="color: deeppink!important;margin: 0; width: 100%" :value="progressValue" max="100"></progress>
@@ -557,7 +589,7 @@ onMounted(async () => {
                  v-model="brushThickness"
                  @input="changeThickness(brushThickness)"/>
         </div>
-        <div class="eraser" @click="activateEraser" style="user-select: none; cursor: pointer" draggable="false">
+        <div class="eraser" @click="activateEraser" style="user-select: none; cursor: pointer" draggable="false" @mouseover="playHoverSound" @mousedown="playClickSound">
           <img src="../assets/eraser.svg" alt="Eraser" class="eraser-icon" draggable="false"
                :style="{ filter: isEraserBlackedOut ? 'brightness(0.75)' : 'none' }">
         </div>
@@ -573,7 +605,27 @@ onMounted(async () => {
 </style>
 
 <style scoped>
+.game-rules-wrapper {
+  position: absolute;
+  z-index: 100;
+  right: 4%;
+  top: 5%;
+}
 
+.game-rules-button {
+  position: relative;
+  z-index: 100;
+}
+/*
+.home-border {
+}
+ */
+.info-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 .chat-banner{
 position: absolute;
 padding:1.5% 0;
@@ -863,7 +915,16 @@ canvas {
     justify-content: center;
     align-items: center;
   }
-
+  .game-rules-button{
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .info-icon{
+    width: 15px
+  }
   .tools-panel {
     padding: 5px;
   }
@@ -898,4 +959,6 @@ dialog article {
 }
 
 }
+
+
 </style>
