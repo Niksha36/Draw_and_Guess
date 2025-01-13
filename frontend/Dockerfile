@@ -1,16 +1,14 @@
-# frontend/Dockerfile
+# FrontendDockerfile
 FROM node:18-alpine
 
+COPY . /app
 # Set work directory
-WORKDIR /app
+WORKDIR /app/frontend
+
+RUN npm cache verify
 
 # Install dependencies
-COPY package.json ./
-COPY package-lock.json ./
 RUN npm install
-
-# Copy project
-COPY . .
 
 # Build the application
 RUN npm run build
@@ -18,5 +16,4 @@ RUN npm run build
 # Expose port
 EXPOSE 3000
 
-# Serve the application
-CMD ["npx", "serve", "-s", "build"]
+CMD ["npm", "run", "serve"]

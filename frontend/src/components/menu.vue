@@ -37,8 +37,7 @@ async function goToRoom() {
     alert("Ошибка при создании комнаты. Повторите позже");
   }
 }
-async function goToGame() {
-    // Проверяем, авторизован ли пользователь
+function goToGame() {
     if (store.username == '' || store.userId == '') {
       showDialog.value = true;
       return;

@@ -50,43 +50,16 @@ function goToMenu() {
   }
 }
 
-async function goToGame() {
-  try {
-    roomExit();
+function goToGame() {
+  roomExit();
 
-    // Проверяем, авторизован ли польз            ователь
-    if (store.username == '' || store.userId == '') {
-      showDialog.value = true;
-      return;
-    }
-
-    const response = await axios.get('/api/room/open/');
-    const openRoom = response.data;
-
-    const playerData = {
-      id: store.userId,
-      username: store.username
-    };
-
-    if (openRoom) {
-      await axios.patch(`/api/room/${openRoom.id}/update/`, {
-        players: [playerData]
-      });
-
-      socketDisconnect();
-      store.roomId = openRoom.id;
-      router.push(`/room/${openRoom.id}`);
-    } else {
-      showDialogOpen.value = true;
-    }
-  } catch (error) {
-    socketDisconnect();
-    if (error.response && error.response.status === 404) {
-      router.push('/');
-    } else {
-      alert("Ошибка при выходе из комнаты. Повторите позже.");
-    }
+  if (store.username == '' || store.userId == '') {
+    showDialog.value = true;
+    return;
   }
+  
+  router.push('/listOfRooms');
+  socketDisconnect();
 }
 
 async function getTopicWords() {
@@ -95,7 +68,7 @@ async function getTopicWords() {
     const data = await fetch('/words.json').then(response => response.json());
     allWords.value = data[response.data.topic];
   } catch (error) {
-    console.error('Ошибка при загрузке данных:', error);
+    console.error('Ошибка при слов:', error);
   }
 }
 

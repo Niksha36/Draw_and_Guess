@@ -17,6 +17,10 @@ const isOwner = ref(false);
 const route = useRoute();
 const router = useRouter();
 const selectedPlayersLimit = ref(14);
+const themes =  ['Человек Паук', 'Животные', 'Наука', 
+                 'Мультфильмы', 'Кино', 'Игры',
+                 'Еда', 'Бытовая техника', 'Инструменты', 
+                ];
 let isActive = false;
 
 const props = defineProps({
@@ -192,14 +196,14 @@ onBeforeUnmount(() => {
             <div class="top-wrapper">
                 <div class="return-to-menu-btn" @click="goToMenu"></div>
                 <div class="btn-wrapper">
-                    <div class="user-limit-wrapper"
-                    >
+                    <div class="user-limit-wrapper">
                         <img class=pli src="../assets/count_of_users.png">
                         Игроки
                         <select v-model="selectedPlayersLimit"
                                 @click="isOwner ? updateRoom(theme) : null"
+                                :disabled="!isOwner"
                                 style="margin:0!important; font-size:80%;padding: 0 30px 0 5px; background-color:white; color:rgba(38, 28, 92); font-weight: bold">
-                            <option v-for="n in 14" :key="n">{{ n }}</option>
+                            <option v-for="n in 13" :key="n">{{ n+1 }}</option>
                         </select>
                     </div>
                     <div class="privacy-switcher-wrapper">
@@ -225,7 +229,7 @@ onBeforeUnmount(() => {
                     <div class="text">Тема</div>
                     <div class="theme-wrapper">
                         <div class="theme-container"
-                             v-for="theme in ['Человек Паук', 'Животные', 'Наука', 'Мультфильмы', 'Кино', 'Игры']"
+                             v-for="theme in themes"
                              :key="theme"
                              :class="{ 'selected': selectedTopic === theme, 'disabled': !isOwner }"
                              @click="isOwner ? updateRoom(theme) : null">
