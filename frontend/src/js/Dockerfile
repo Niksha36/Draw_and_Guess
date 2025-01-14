@@ -1,0 +1,14 @@
+FROM node:18-alpine
+
+COPY . /app
+# Set work directory
+WORKDIR /app/fronten
+
+# Install dependencies
+RUN npm install
+
+# Expose the port the server will run on
+EXPOSE 3000
+
+# Command to run the server
+CMD ["node", "/app/frontend/src/js/server.js"]

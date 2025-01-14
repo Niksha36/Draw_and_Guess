@@ -14,6 +14,6 @@ RUN npm install
 RUN npm run build
 
 # Expose port
-EXPOSE 3000
+EXPOSE 5173
 
 CMD ["npm", "run", "serve"]

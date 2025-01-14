@@ -4,7 +4,7 @@ import chatComponent from './chatComponent.vue';
 import answersComponent from './AnswersComponent.vue';
 import axios from 'axios';
 import {store} from "@/js/store.js";
-import {computed, onMounted, ref} from 'vue';
+import {computed, nextTick, onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {io} from 'socket.io-client';
 import RulesDialog from './RulesDialog.vue';
@@ -269,10 +269,16 @@ onMounted(async () => {
   socket.emit('joinRoom', Number(store.roomId));
 
   socket.on('allDrawings', (drawings) => {
-    drawings.forEach(drawData => {
-      drawOnCanvas(drawData);
-    });
+    console.log(drawings);
+    setTimeout(() => {
+      nextTick(() => {
+        drawings.forEach(drawData => {
+          drawOnCanvas(drawData);
+        });
+      });
+    }, 300); // Adjust the timeout duration as needed
   });
+
   const response = await axios.get(`/api/room/${store.roomId}/`);
   isPainter.value = response.data.painter == store.userId;
   store.isPainter = isPainter.value;

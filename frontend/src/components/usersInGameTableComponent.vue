@@ -45,15 +45,6 @@ function updateScore(userName, scoreIncrement, isOwner) {
         });
       }
     } else if (store.isPainter && store.answersCount === users.value.length - 1 && !endRound.value) {
-        socket.emit('updateScore', { userName: store.username, increment: 3, isOwner: true });
-        axios.patch(`/api/user/${store.userId}/update`, {
-          token: store.token,
-          room_id: store.roomId,
-          points: 3,
-        })
-        .catch(error => {
-          console.error('Ошибка:', error);
-        });
         socket.emit('endRound');
         endRound.value = true;
     }
@@ -81,15 +72,6 @@ async function fetchRoomData() {
     }
     
     if (store.isPainter && store.answersCount === users.value.length - 1) {
-        socket.emit('updateScore', { userName: store.username, increment: 3, isOwner: true });
-        axios.patch(`/api/user/${store.userId}/update`, {
-          token: store.token,
-          room_id: store.roomId,
-          points: 3,
-        })
-        .catch(error => {
-          console.error('Ошибка:', error);
-        });
         socket.emit('endRound');
     }
 
