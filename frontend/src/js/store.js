@@ -17,9 +17,13 @@ export const store = reactive({
     progressValue: localStorage.getItem('progressValue') || 0,
     dialogProgressValue: localStorage.getItem('dialogProgressValue') || 0,
     answersCount: localStorage.getItem('answersCount') || 0,
+    isGameMusicPlaying: localStorage.getItem('isGameMusicPlaying') === 'true' || false,
 });
 
 // Watch for changes to the username and save to localStorage
+watch(() => store.isGameMusicPlaying, (newIsGameMusicPlaying) => {
+    localStorage.setItem('isGameMusicPlaying', newIsGameMusicPlaying);
+});
 watch(() => store.username, (newUsername) => {
     localStorage.setItem('username', newUsername);
 });

@@ -4,12 +4,19 @@ import chatComponent from './chatComponent.vue';
 import answersComponent from './AnswersComponent.vue';
 import axios from 'axios';
 import {store} from "@/js/store.js";
-import {onMounted, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {io} from 'socket.io-client';
 import RulesDialog from './RulesDialog.vue';
-import {playClickSound, playHoverSound} from "@/js/soundEffects.js";
+import {
+  playChoosingWordSound,
+  playClickSound, playGameMusic,
+  playHoverSound,
+  playStopTimerSound,
+  playTimerSound, stopGameMusic, toggleSounds,
+} from "@/js/soundEffects.js";
 import drawingSound from "../sound_pack/drawing-sound.mp3"
+
 
 
 const socket = io('http://localhost:3000');
@@ -42,10 +49,16 @@ async function roomExit() {
 
 function goToMenu() {
   try {
+    store.isGameMusicPlaying = false
+    playStopTimerSound();
+    stopGameMusic();
     roomExit();
     router.push('/');
   } catch (error) {
     if (error.response && error.response.status === 404) {
+      store.isGameMusicPlaying = false
+      playStopTimerSound();
+      stopGameMusic();
       router.push('/');
     } else {
       alert("Ошибка при выходе из комнаты. Повторите позже.");
@@ -87,7 +100,7 @@ async function changePainter() {
   if (isPainter.value) {
     socket.emit('startTimer');
   }
-
+  playChoosingWordSound();
   startDialogTimer();
 } 
 
@@ -119,11 +132,12 @@ async function startNextRound(word) {
 function startTimer() {
   socket.off('time');
   store.isDialogOpen = false;
-
+  playTimerSound()
   socket.on('time', (time) => {
     progressValue.value = time / 60 * 100 ;
 
     if (time >= 60) {
+      playStopTimerSound();
       if (isPainter.value) {
         socket.emit('endRound');
       }
@@ -240,6 +254,17 @@ function openRulesDialog() {
 function closeRulesDialog() {
   showRulesDialog.value = false;
 }
+
+const soundsEnabled = ref(true);
+
+const buttonClass = computed(() => {
+  return soundsEnabled.value ? 'disableAllSounds enabled' : 'disableAllSounds disabled';
+});
+
+function toggleSoundState() {
+  toggleSounds();
+  soundsEnabled.value = !soundsEnabled.value;
+}
 onMounted(async () => {
   socket.emit('joinRoom', Number(store.roomId));
 
@@ -248,7 +273,6 @@ onMounted(async () => {
       drawOnCanvas(drawData);
     });
   });
-
   const response = await axios.get(`/api/room/${store.roomId}/`);
   isPainter.value = response.data.painter == store.userId;
   store.isPainter = isPainter.value;
@@ -275,6 +299,11 @@ onMounted(async () => {
     canvasStates.value = [];
   });
   socket.on('startGame', () => {
+    if(!store.isGameMusicPlaying){
+      playGameMusic();
+      store.isGameMusicPlaying = true;
+    }
+
     socket.off('dialogTime');
   });
   socket.on('changePainter', () => {
@@ -443,6 +472,7 @@ onMounted(async () => {
 
 <template>
   <div class="background" draggable="false">
+    <div :class="buttonClass" @click="toggleSoundState"></div>
     <dialog v-if="showDialogOpen" open>
       <article class="dialog">
         <p>
@@ -599,6 +629,25 @@ onMounted(async () => {
 
 </template>
 <style>
+.disableAllSounds{
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2%;
+  height: 4%;
+  outline:none;
+  border-radius:20px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+.disableAllSounds.enabled:hover {
+  background-color: rgba(92, 255, 182, 0.51); /* Green */
+}
+
+.disableAllSounds.disabled:hover {
+  background-color: rgba(255, 0, 0, 0.51); /* Red */
+}
 :root {
   --text-shadow: rgb(23, 5, 87) 3px 0px 0px, rgb(23, 5, 87) 2.83487px .981584px 0px, rgb(23, 5, 87) 2.35766px 1.85511px 0px, rgb(23, 5, 87) 1.62091px 2.52441px 0px, rgb(23, 5, 87) .705713px 2.91581px 0px, rgb(23, 5, 87) -.287171px 2.98622px 0px, rgb(23, 5, 87) -1.24844px 2.72789px 0px, rgb(23, 5, 87) -2.07227px 2.16926px 0px, rgb(23, 5, 87) -2.66798px 1.37182px 0px, rgb(23, 5, 87) -2.96998px .42336px 0px, rgb(23, 5, 87) -2.94502px -.571704px 0px, rgb(23, 5, 87) -2.59586px -1.50383px 0px, rgb(23, 5, 87) -1.96093px -2.27041px 0px, rgb(23, 5, 87) -1.11013px -2.78704px 0px, rgb(23, 5, 87) -.137119px -2.99686px 0px, rgb(23, 5, 87) .850987px -2.87677px 0px, rgb(23, 5, 87) 1.74541px -2.43999px 0px, rgb(23, 5, 87) 2.44769px -1.73459px 0px, rgb(23, 5, 87) 2.88051px -.838247px 0px;
 }

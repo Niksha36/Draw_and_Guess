@@ -14,11 +14,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="isLandscape">
+  <div>
     <RouterView />
-  </div>
-  <div v-else >
-    <dialog open>
+    <dialog v-show="!isLandscape" open style="background-color:white">
       <p class="vertical-warning">Пожалуйста, поверните свой дивайс в горизонталбное положение 📱🔄</p>
     </dialog>
   </div>

@@ -2,6 +2,7 @@
 import {ref, onMounted, nextTick} from 'vue';
 import { io } from 'socket.io-client';
 import {store} from "@/js/store.js";
+import {playWarningSound} from "@/js/soundEffects.js";
 
 const socket = io('http://localhost:3000');
 const messages = ref([]);
@@ -51,6 +52,7 @@ const sendMessage = () => {
 
   if (isCorrectAnswer(newMessage)) {
     messages.value.push({ userName: "Крокодил", text: "Нельзя делиться ответом в чате!", exception: true});
+    playWarningSound()
     scrollToBottom();
     return;
   }

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ref, onMounted } from 'vue';
 import { io } from 'socket.io-client';
 import {store} from "@/js/store.js";
+import {playCorrectAnswerSound} from "@/js/soundEffects.js";
 
 const socket = io('http://localhost:3000');
 const messages = ref([]);
@@ -62,6 +63,7 @@ const sendMessage = () => {
   let points = getScoreIncrement(store.answersCount);
 
   if (message.isCorrect) {
+    playCorrectAnswerSound()
     socket.emit('updateScore', { userName: user, increment: points, isOwnwer: false });
     axios.patch(`/api/user/${store.userId}/update`, {
       token: store.token,
