@@ -1,19 +1,26 @@
-# FrontendDockerfile
+# Используем официальный Node.js образ
 FROM node:18-alpine
 
+# Копируем приложение
 COPY . /app
-# Set work directory
+
+# Устанавливаем рабочую директорию
 WORKDIR /app/frontend
 
-RUN npm cache verify
-
-# Install dependencies
+# Устанавливаем зависимости
 RUN npm install
 
-# Build the application
+# Устанавливаем NODE_ENV в production
+ENV NODE_ENV=production
+
+# Собираем приложение
 RUN npm run build
 
-# Expose port
+# Устанавливаем сервер для раздачи статических файлов
+RUN npm install -g serve
+
+# Expose порт для сервера
 EXPOSE 5173
 
+# Запускаем сервер для собранных файлов
 CMD ["npm", "run", "serve"]

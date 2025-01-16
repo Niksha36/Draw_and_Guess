@@ -247,7 +247,6 @@ function drawOnCanvas(data) {
 const showRulesDialog = ref(false);
 
 function openRulesDialog() {
-  console.log("button was clicked")
   showRulesDialog.value = true;
 }
 

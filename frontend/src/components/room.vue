@@ -78,7 +78,7 @@ async function goToMenu() {
             showLogin.value = true;
             return;
         }
-        console.log(store.userToken)
+
         await axios.patch(`/api/room/${store.roomId}/exit/`, {
             user_id: store.userId,
             user_token: store.userToken

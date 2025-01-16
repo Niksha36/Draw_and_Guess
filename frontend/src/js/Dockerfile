@@ -1,8 +1,9 @@
 FROM node:18-alpine
 
 COPY . /app
+
 # Set work directory
-WORKDIR /app/fronten
+WORKDIR /app/frontend
 
 # Install dependencies
 RUN npm install
