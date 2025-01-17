@@ -23,7 +23,7 @@ const finallyScore = 160;
 function updateScore(userName, scoreIncrement, isOwner) {
   const user = users.value.find(user => user.name === userName);
   if (user) {
-    user.score += scoreIncrement;
+    fetchRoomData();
     updatePlaces();
     
     if (!isOwner) {
@@ -34,7 +34,7 @@ function updateScore(userName, scoreIncrement, isOwner) {
       socket.emit('endGame');
 
       if (userName == store.username) {
-        axios.patch(`/api/user/${store.userId}/update`, {
+        axios.patch(`/api/score/${store.userId}/update`, {
           token: store.token,
           room_id: store.roomId,
           increment: true,
@@ -45,6 +45,15 @@ function updateScore(userName, scoreIncrement, isOwner) {
         });
       }
     } else if (store.isPainter && store.answersCount === users.value.length - 1 && !endRound.value) {
+        socket.emit('updateScore', { userName: store.username, increment: 3, isOwnwer: true });
+        axios.patch(`/api/score/${store.userId}/update`, {
+          token: store.token,
+          room_id: store.roomId,
+          points: 3,
+        })
+        .catch(error => {
+          console.error('Ошибка:', error);
+        });
         socket.emit('endRound');
         endRound.value = true;
     }
@@ -59,10 +68,10 @@ async function fetchRoomData() {
   try {
     const response = await axios.get(`/api/room/${store.roomId}/`);
     const players = response.data.players;
-
+  
     users.value = players.map((player, index) => ({
       name: player.username,
-      score: player.gameScore,
+      score: player.score,
       place: index + 1
     }));
 

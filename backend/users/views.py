@@ -61,30 +61,3 @@ class UserListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     
-class UserUpdate(APIView):
-    def patch(self, request, user_id):
-        try:
-            user = User.objects.get(id=user_id)
-            room_id = request.data.get('room_id')
-            room = Room.objects.get(id=room_id)
-        except User.DoesNotExist:
-            return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
-        except Room.DoesNotExist:
-            return Response({"error": "Комната не найдена"}, status=status.HTTP_404_NOT_FOUND)
-        
-        token = request.data.get('token')
-        if room.token != token: 
-            return Response({"error": "Нет прав для изменения пользователя"}, status=status.HTTP_403_FORBIDDEN)
-        
-        if request.data.get("points"):
-            points = request.data.get("points", 0)
-            user.gameScore += points
-        if request.data.get("increment"):
-            user.winGames += 1
-        
-        user.save()
-
-        serializer = UserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    

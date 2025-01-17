@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios';
-import {ref, onMounted, onBeforeUnmount, defineProps} from 'vue';
+import {ref, onMounted, onUnmounted, onBeforeUnmount, defineProps} from 'vue';
 import {useRouter, useRoute} from 'vue-router';
 import {store} from "@/js/store.js";
 import {io} from 'socket.io-client';
@@ -23,6 +23,7 @@ const themes =  ['Человек Паук', 'Животные', 'Наука',
                  'Еда', 'Бытовая техника', 'Инструменты',
                 ];
 let isActive = false;
+
 
 const props = defineProps({
     roomId: {
@@ -164,6 +165,7 @@ onBeforeUnmount(() => {
         socket.close();
     }
 });
+
 </script>
 
 <template>

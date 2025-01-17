@@ -1,12 +1,14 @@
 from django.shortcuts import render
 from django.utils.crypto import get_random_string
 from .serializers import RoomSerializers
+from users.serializers import UserSerializer
 from users.models import User
 from .models import Room
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Count, F
+from django.db import transaction
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 import random
     
@@ -23,6 +25,7 @@ class RoomCreating(APIView):
     )
     def post(self, request):
         serializer = RoomSerializers(data=request.data)
+        
         if serializer.is_valid():
             room = serializer.save()
             room.token = get_random_string(32)
@@ -69,14 +72,8 @@ class RoomUpdate(APIView):
         max_players = request.data.get('max_players')
         
         if players:
-            player_ids = [player['id'] for player in players if 'id' in player]
-            users_to_add = User.objects.filter(id__in=player_ids)
-            
-            for user in users_to_add:
-                user.gameScore = 0
-                user.save()
-            
-            room.players.add(*player_ids)
+            players_ids = [player['id'] for player in players if 'id' in player]
+            room.players.add(*players_ids)
             room.save()
             
             serializer = RoomSerializers(room)
@@ -226,5 +223,4 @@ class RoundUpdate(APIView):
         room.save()
         serializer = RoomSerializers(room)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
     

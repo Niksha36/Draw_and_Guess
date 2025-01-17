@@ -1,12 +1,11 @@
 <script setup>
 import { useRouter } from 'vue-router';
-import { computed, ref, onMounted } from "vue";
+import { computed, ref } from "vue";
 import axios from 'axios';
 import '@fortawesome/fontawesome-free/css/all.css';
 import LoginComponent from './LoginComponent.vue';
 import { store } from '@/js/store.js';
 import {playClickSound, playHoverSound} from "@/js/soundEffects.js";
-
 
 const router = useRouter();
 const showLogin = ref(false);
@@ -14,7 +13,6 @@ const showDialog = ref(false);
 const showDialogOpen = ref(false);
 const username = computed(() => store.username);
 const buttonText = computed(() => (username.value ? 'Выйти' : 'Войти'));
-
 
 async function goToRoom() {
   try {
@@ -58,6 +56,7 @@ function revertMenu() {
 function goToScore() {
   router.push('/score');
 }
+
 </script>
 
 <template>

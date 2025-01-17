@@ -4,7 +4,6 @@ import showPasswordIcon from '../assets/show-password.svg';
 import hidePasswordIcon from '../assets/hide-password.svg';
 import RegistrationComponent from './RegistrationComponent.vue';
 import {ref, defineEmits, defineProps} from "vue";
-import router from "@/router.js";
 import {store} from "@/js/store.js";
 import {playClickSound, playHoverSound} from "@/js/soundEffects.js";
 
@@ -13,6 +12,7 @@ const showPassword = ref(false);
 const username = ref(""); 
 const password = ref(""); 
 const showRegistration = ref(false);
+const errorMessage = ref(false);
 const emit = defineEmits(['login-success']);
 
 function togglePassword() {
@@ -33,10 +33,8 @@ async function loginUser() {
     store.username = username.value;
     emit('login-success');
   } catch (error) {
-    if (error.response && error.response.status === 400) {
-      const errors = error.response.data;
-      const errorMessages = Object.values(errors).flat(); 
-      alert(errorMessages);
+    if (error.response && error.response.status === 401) {
+      errorMessage.value = true;
     } else {
       alert("Ошибка при авторизации: Неизвестная ошибка");
     }
@@ -46,6 +44,17 @@ async function loginUser() {
 </script>
 
 <template>
+<dialog v-if="errorMessage" open>
+  <article class="dialog">
+    <p>
+      <strong>🔒 Неверное имя или пароль!</strong><br>
+      Убедитесь, что вы ввели верный данные.
+    </p>
+    <button class="button" style="margin: 0; background-color: transparent; border: none" @mouseover="playHoverSound" @mousedown="playClickSound"
+      @click="errorMessage = false">Закрыть
+    </button>
+  </article>
+</dialog>
 <div v-if="!showRegistration" class="login-form">
   <h3>Вход</h3>
   <input
@@ -77,6 +86,37 @@ async function loginUser() {
 .password-wrapper{
   position: relative;
   width: 100%
+}
+.dialog {
+  padding-left:5%;
+  padding-right:5%;
+  border-radius: 10px;
+  flex-wrap: wrap;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.button {
+  background-image: url("../assets/button.svg");
+  width: 281px;
+  height: 66px;
+  border: none;
+  color: #ffd506;
+  text-shadow: rgb(23, 21, 86) 4px 0px 0px, rgb(23, 21, 86) 3.87565px .989616px 0px, rgb(23, 21, 86) 3.51033px 1.9177px 0px, rgb(23, 21, 86) 2.92676px 2.72656px 0px, rgb(23, 21, 86) 2.16121px 3.36588px 0px, rgb(23, 21, 86) 1.26129px 3.79594px 0px, rgb(23, 21, 86) .282949px 3.98998px 0px, rgb(23, 21, 86) -.712984px 3.93594px 0px, rgb(23, 21, 86) -1.66459px 3.63719px 0px, rgb(23, 21, 86) -2.51269px 3.11229px 0px, rgb(23, 21, 86) -3.20457px 2.39389px 0px, rgb(23, 21, 86) -3.69721px 1.52664px 0px, rgb(23, 21, 86) -3.95997px .56448px 0px, rgb(23, 21, 86) -3.97652px -.432781px 0px, rgb(23, 21, 86) -3.74583px -1.40313px 0px, rgb(23, 21, 86) -3.28224px -2.28625px 0px, rgb(23, 21, 86) -2.61457px -3.02721px 0px, rgb(23, 21, 86) -1.78435px -3.57996px 0px, rgb(23, 21, 86) -.843183px -3.91012px 0px, rgb(23, 21, 86) .150409px -3.99717px 0px, rgb(23, 21, 86) 1.13465px -3.8357px 0px, rgb(23, 21, 86) 2.04834px -3.43574px 0px, rgb(23, 21, 86) 2.83468px -2.82216px 0px, rgb(23, 21, 86) 3.44477px -2.03312px 0px, rgb(23, 21, 86) 3.84068px -1.11766px 0px, rgb(23, 21, 86) 3.9978px -.132717px 0px;
+  font-size: 24px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+  cursor: pointer;
+  background-position: center;
+  box-shadow: none;
+}
+.button:hover {
+  background-image: url("../assets/hover_button.svg");
 }
 .login-form{
   display: flex;

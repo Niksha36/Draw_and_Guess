@@ -27,9 +27,7 @@ const io = new Server(server, {
         methods: ['GET', 'POST']
     }
 });
-const redisClient = createClient({
-    url: 'redis://redis:6379'
-});
+const redisClient = createClient();
 redisClient.connect();
 
 let dialogTimer = null;

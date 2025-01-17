@@ -15,5 +15,4 @@ class Room(models.Model):
     link_token = models.CharField(max_length=16, blank=True, null=True)
 
     def __str__(self):
-        return self.roomname
-
+        return f"Room: `{self.roomname}`"

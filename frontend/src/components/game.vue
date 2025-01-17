@@ -4,7 +4,7 @@ import chatComponent from './chatComponent.vue';
 import answersComponent from './AnswersComponent.vue';
 import axios from 'axios';
 import {store} from "@/js/store.js";
-import {computed, nextTick, onMounted, ref} from 'vue';
+import {computed, nextTick, onMounted, ref } from 'vue';
 import {useRouter} from 'vue-router';
 import {io} from 'socket.io-client';
 import RulesDialog from './RulesDialog.vue';
@@ -16,8 +16,6 @@ import {
   playTimerSound, stopGameMusic, toggleSounds,
 } from "@/js/soundEffects.js";
 import drawingSound from "../sound_pack/drawing-sound.mp3"
-
-
 
 const socket = io('http://localhost:3000');
 const selectedColor = ref(null);
@@ -211,7 +209,7 @@ function socketDisconnect() {
   socket.disconnect();
 };
 
-window.addEventListener('beforeunload', async (event) => {
+window.addEventListener('beforeunload', () => {
   store.beforeunmount = true;
 });
 
@@ -239,20 +237,17 @@ function drawOnCanvas(data) {
     ctx.lineTo(data.x, data.y);
     ctx.stroke();
   }
-}
-
-
-
+};
 
 const showRulesDialog = ref(false);
 
 function openRulesDialog() {
   showRulesDialog.value = true;
-}
+};
 
 function closeRulesDialog() {
   showRulesDialog.value = false;
-}
+};
 
 const soundsEnabled = ref(true);
 
@@ -263,19 +258,19 @@ const buttonClass = computed(() => {
 function toggleSoundState() {
   toggleSounds();
   soundsEnabled.value = !soundsEnabled.value;
-}
+};
+
 onMounted(async () => {
   socket.emit('joinRoom', Number(store.roomId));
 
   socket.on('allDrawings', (drawings) => {
-    console.log(drawings);
     setTimeout(() => {
       nextTick(() => {
         drawings.forEach(drawData => {
           drawOnCanvas(drawData);
         });
       });
-    }, 300); // Adjust the timeout duration as needed
+    }, 500); // Adjust the timeout duration as needed
   });
 
   const response = await axios.get(`/api/room/${store.roomId}/`);
@@ -332,7 +327,7 @@ onMounted(async () => {
   socket.on('updateScore', (data) => {
     if (isPainter.value && data.userName != store.username) {
       socket.emit('updateScore', { userName: store.username, increment: 2, isOwner: true });
-      axios.patch(`/api/user/${store.userId}/update`, {
+      axios.patch(`/api/score/${store.userId}/update`, {
         token: store.token,
         room_id: store.roomId,
         points: 2,

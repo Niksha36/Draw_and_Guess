@@ -7,6 +7,7 @@ WORKDIR /app/frontend
 
 # Install dependencies
 RUN npm install
+RUN npm install string-similarity
 
 # Expose the port the server will run on
 EXPOSE 3000
