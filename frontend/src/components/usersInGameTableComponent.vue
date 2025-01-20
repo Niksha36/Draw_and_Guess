@@ -20,7 +20,7 @@ const users = ref([]);
 const endRound = ref(false);
 const finallyScore = 160;
 
-function updateScore(userName, scoreIncrement, isOwner) {
+async function updateScore(userName, scoreIncrement, isOwner) {
   const user = users.value.find(user => user.name === userName);
   if (user) {
     fetchRoomData();
@@ -30,23 +30,9 @@ function updateScore(userName, scoreIncrement, isOwner) {
       store.answersCount++;
     }
 
-    if (user.score >= finallyScore) {
-      socket.emit('endGame');
-
-      if (userName == store.username) {
-        axios.patch(`/api/score/${store.userId}/update`, {
-          token: store.token,
-          room_id: store.roomId,
-          increment: true,
-        })
-        .catch(error => {
-
-          console.error('Ошибка:', error);
-        });
-      }
-    } else if (store.isPainter && store.answersCount === users.value.length - 1 && !endRound.value) {
-        socket.emit('updateScore', { userName: store.username, increment: 3, isOwnwer: true });
-        axios.patch(`/api/score/${store.userId}/update`, {
+    if (store.isPainter && store.answersCount === users.value.length - 1 && !endRound.value) {
+      socket.emit('updateScore', { userName: store.username, increment: 3, isOwnwer: true });  
+      axios.patch(`/api/score/${store.userId}/update/`, {
           token: store.token,
           room_id: store.roomId,
           points: 3,
@@ -74,6 +60,23 @@ async function fetchRoomData() {
       score: player.score,
       place: index + 1
     }));
+
+    const winner = users.value.find(user => user.score >= finallyScore);
+    if (winner) {
+      if (winner.name == store.username && !endRound.value) {
+        endRound.value = true;
+        axios.patch(`/api/score/${store.userId}/update/`, {
+          token: store.token,
+          room_id: store.roomId,
+          increment: true,
+        })
+        .catch(error => {
+          console.error('Ошибка:', error);
+        });
+      }
+      socket.emit('endGame');
+      return;
+    }
 
     if (players.length == 1) {
       socket.emit('endGame');

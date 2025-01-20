@@ -25,7 +25,6 @@ async function goToRoom() {
       roomname: store.username,
       painter: store.userId,
       owner: store.userId,
-      players: [],
     });
 
     store.roomId = response.data.id;
@@ -96,6 +95,9 @@ function goToScore() {
         <div v-if="!showLogin" class="content">
           <div class="avatar">
             <img src="../assets/avatar.svg" alt="Avatar" class="avatar-img">
+          </div>
+          <div v-if="store.username != ''" class="username">
+            <p>Привет, {{ store.username }}!</p>
           </div>
           <button class="logout" style="border: none" @click="logout" @mouseenter="playHoverSound" @mousedown="playClickSound">
             <i class="fas fa-sign-out-alt"></i> {{ buttonText }}
@@ -242,7 +244,6 @@ function goToScore() {
   box-shadow: none;
   will-change: auto;
 }
-
 .button:hover {
   background-image: url("../assets/hover_button.svg");
 }
@@ -255,6 +256,21 @@ function goToScore() {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  text-align: center;
+}
+.username {
+  margin-top: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+.username p {
+  margin: 10px;
+  font-weight: bold;
+  font-size: 30px;
+  color: #ffbe5c;
+  text-shadow: rgb(23, 5, 87) 3px 0px 0px, rgb(23, 5, 87) 2.83487px .981584px 0px, rgb(23, 5, 87) 2.35766px 1.85511px 0px, rgb(23, 5, 87) 1.62091px 2.52441px 0px, rgb(23, 5, 87) .705713px 2.91581px 0px, rgb(23, 5, 87) -.287171px 2.98622px 0px, rgb(23, 5, 87) -1.24844px 2.72789px 0px, rgb(23, 5, 87) -2.07227px 2.16926px 0px, rgb(23, 5, 87) -2.66798px 1.37182px 0px, rgb(23, 5, 87) -2.96998px .42336px 0px, rgb(23, 5, 87) -2.94502px -.571704px 0px, rgb(23, 5, 87) -2.59586px -1.50383px 0px, rgb(23, 5, 87) -1.96093px -2.27041px 0px, rgb(23, 5, 87) -1.11013px -2.78704px 0px, rgb(23, 5, 87) -.137119px -2.99686px 0px, rgb(23, 5, 87) .850987px -2.87677px 0px, rgb(23, 5, 87) 1.74541px -2.43999px 0px, rgb(23, 5, 87) 2.44769px -1.73459px 0px, rgb(23, 5, 87) 2.88051px -.838247px 0px;
+  text-transform: uppercase;
   text-align: center;
 }
 

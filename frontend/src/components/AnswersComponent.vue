@@ -64,9 +64,9 @@ const sendMessage = () => {
   let points = getScoreIncrement(store.answersCount);
 
   if (message.isCorrect) {
-    playCorrectAnswerSound()
+    playCorrectAnswerSound();
     socket.emit('updateScore', { userName: user, increment: points, isOwnwer: false });
-    axios.patch(`/api/score/${store.userId}/update`, {
+    axios.patch(`/api/score/${store.userId}/update/`, {
       token: store.token,
       room_id: store.roomId,
       points: points,
@@ -82,8 +82,7 @@ const sendMessage = () => {
     socket.emit('answerMessage', { userName: "Крокодил", answer: "Игрок `" + user + "` угадал слово!", isCorrectPlayer: true });
   } else {
     const similarityCoef = stringSimilarity.compareTwoStrings(message.answer.toLowerCase(), correctAnswer.value);
-    console.log(similarityCoef)
-    if (similarityCoef >= 0.8) { 
+    if (similarityCoef >= 0.72) { 
       messages.value.push({ userName: "Крокодил", answer: "Вы были близки.", isClose: true});
     } else {
       socket.emit('answerMessage', message);

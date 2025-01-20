@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios';
-import {ref, onMounted, onUnmounted, onBeforeUnmount, defineProps} from 'vue';
+import {ref, onMounted, onBeforeUnmount, defineProps} from 'vue';
 import {useRouter, useRoute} from 'vue-router';
 import {store} from "@/js/store.js";
 import {io} from 'socket.io-client';
@@ -132,11 +132,12 @@ onMounted(async () => {
 
     const playerData = {
         id: store.userId,
-        username: store.username
+        username: store.username,
+        token: store.userToken
     };
 
     await axios.patch(`/api/room/${store.roomId}/update/`, {
-        players: [playerData],
+        new_player: playerData,
         user_token: store.userToken,
         link_token: store.linkToken,
     });
@@ -154,7 +155,7 @@ onMounted(async () => {
     socket.on('token', (linkToken, token) => {
         store.linkToken = linkToken;
         store.token = token;    
-    })
+    });
 
     intervalId.value = setInterval(fetchRoomData, 500);
 });

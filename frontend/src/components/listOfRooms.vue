@@ -20,12 +20,13 @@ async function onPlayButton(){
     
       const playerData = {
         id: store.userId,
-        username: store.username
+        username: store.username,
+        token: store.userToken
       };
     
       if (selectedRoom.value) {
         await axios.patch(`/api/room/${selectedRoom.value}/update/`, {
-          players: [playerData],
+          new_player: playerData,
           user_token: store.userToken
         });
     

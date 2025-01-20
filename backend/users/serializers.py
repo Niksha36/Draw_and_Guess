@@ -8,9 +8,16 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
+        fields = ['username', 'winGames']
+
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
         fields = ['username', 'password', 'winGames']
-
-
+    
     def create(self, validated_data):
         user = User.objects.create(
                 username=validated_data['username'],
@@ -37,5 +44,4 @@ class LoginSerializer(serializers.Serializer):
 
         attrs['user'] = user
         return attrs
-
     

@@ -6,7 +6,10 @@ class PlayerScore(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     score = models.IntegerField(default=0)
-
+    
+    class Meta:
+        unique_together = ('user', 'room')
+        
     def __str__(self):
         return f"{self.user.username} в комнате {self.room.roomname}"
     

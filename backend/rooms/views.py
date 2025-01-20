@@ -1,16 +1,12 @@
-from django.shortcuts import render
+from django.db.models import Count, F
 from django.utils.crypto import get_random_string
-from .serializers import RoomSerializers
-from users.serializers import UserSerializer
-from users.models import User
-from .models import Room
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db.models import Count, F
-from django.db import transaction
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
-import random
+from users.models import User
+from .models import Room
+from .serializers import RoomSerializers
     
 
 class RoomCreating(APIView):
@@ -42,38 +38,65 @@ class RoomUpdate(APIView):
     @extend_schema(
         summary="Обновление темы и приватности комнаты",
         description="Позволяет создателю комнаты изменять тему и приватность.",
+        request={
+            "user_token": OpenApiParameter(name="user_token", description="Токен пользователя", required=True),
+            "link_token": OpenApiParameter(name="link_token", description="Токен для присоеденения к комнате, если комната закрыта", required=False),
+            "topic": OpenApiParameter(name="topic", description="Тема комнаты", required=False),
+            "is_private": OpenApiParameter(name="is_private", description="Приватность комнаты", required=False),
+            "is_active": OpenApiParameter(name="is_active", description="Активна ли комната. Если комната активна, то она не отображается у других игроков как доступная", required=False),
+            "new_player": OpenApiParameter(name="new_player", description="Новый игрок", required=False),
+            "max_players": OpenApiParameter(name="max_players", description="Максимальное количество игроков", required=False)
+        },
         responses={
             200: OpenApiResponse(response=RoomSerializers, description="Комната успешно обновлена"),
             403: OpenApiResponse(description="Нет прав для изменения комнаты или неправильный link токен"),
             404: OpenApiResponse(description="Комната не найдена"),
-            400: OpenApiResponse(description="Не указан токен пользователя"),
+            400: OpenApiResponse(description="Ошибка валидации"),
             422: OpenApiResponse(description="Количество игроков в комнате больше, чем новое значение количества игроков")
         }
     )
+    def __init__(self):
+        self.ALLOWED_TOPICS = ['Человек Паук', 'Животные', 'Наука', 
+                               'Мультфильмы', 'Кино', 'Игры',
+                               'Еда', 'Бытовая техника', 'Инструменты']
+    
     def patch(self, request, room_id):
         try:
             room = Room.objects.get(id=room_id)
             user_token = request.data.get('user_token')
             
             if user_token is None:
-                return Response({"error": "Не указан токен пользователя"}, status=status.HTTP_400_BAD_REQUEST)
-            
+                return Response({"error": "Не указан токен пользователя"}, status=status.HTTP_400_BAD_REQUEST)          
         except Room.DoesNotExist:
             return Response({"error": "Комната не найдена"}, status=status.HTTP_404_NOT_FOUND)
         
         link_token = request.data.get('link_token')
         if room.is_private and link_token != room.link_token:
             return Response({"error": "Неправильный токен"}, status=status.HTTP_403_FORBIDDEN)
-        
+
         topic = request.data.get('topic')
         is_private = request.data.get('is_private')
         is_active = request.data.get('is_active')
-        players = request.data.get('players')
+        new_player = request.data.get('new_player')
         max_players = request.data.get('max_players')
-        
-        if players:
-            players_ids = [player['id'] for player in players if 'id' in player]
-            room.players.add(*players_ids)
+
+        if new_player:
+            player_id = new_player['id']  if 'id' in new_player else None
+            player_token = new_player['token']  if 'token' in new_player else None
+
+            try:
+                if player_id is None or player_token is None:
+                    return Response({"error": "У нового игрока не указан id или token"}, status=status.HTTP_400_BAD_REQUEST)
+                
+                player = User.objects.get(id=player_id)
+                
+                if player_token != player.token:
+                    return Response({"error": "Неправильный токен пользователя"}, status=status.HTTP_403_FORBIDDEN)
+            
+            except User.DoesNotExist:
+                return Response({"error": "Новый игрок не найден"}, status=status.HTTP_404_NOT_FOUND)
+            
+            room.players.add(player_id)
             room.save()
             
             serializer = RoomSerializers(room)
@@ -91,12 +114,19 @@ class RoomUpdate(APIView):
                     status=status.HTTP_422_UNPROCESSABLE_ENTITY
                 )
             room.max_players = max_players
-        if topic is not None:
+        
+        if topic in self.ALLOWED_TOPICS:
             room.topic = topic
+        elif topic not in self.ALLOWED_TOPICS and topic is not None:
+            return Response({"error": "Недопустимая тема"}, status=status.HTTP_400_BAD_REQUEST)  
+        
         if is_private is not None:
             room.is_private = is_private
-        if is_active is not None:
+        
+        if is_active is not None and not room.is_active:
             room.is_active = is_active
+        elif room.is_active:
+            return Response({"error": "Нельзя изменить статус комнаты, после того, как она была активирована"}, status=status.HTTP_400_BAD_REQUEST) 
 
         room.save()
         serializer = RoomSerializers(room)
@@ -107,6 +137,7 @@ class OpenRoomList(APIView):
     @extend_schema(
         summary="Получение всех открытых комнат",
         description="Позволяет получить все открытые и не заполненые комнаты.",
+        request=None,
         responses={
             200: OpenApiResponse(response=RoomSerializers, description="Открытые комнаты успешно получены"),
             404: OpenApiResponse(description="Ни одна открытая комната не найдена")
@@ -129,6 +160,7 @@ class RoomDetail(APIView):
     @extend_schema(
         summary="Получение информации о комнате",
         description="Позволяет получить информацию о комнате (уникальный индификатор, кол-во участников ....).",
+        request=None,
         responses={
             200: OpenApiResponse(response=RoomSerializers, description="Информация о комнате получена"),
             404: OpenApiResponse(description="Комната с данным индификатором (id) не была найдена")
@@ -147,6 +179,10 @@ class RoomExit(APIView):
     @extend_schema(
     summary="Выход из комнаты",
     description="Позволяет игроку выйти из комнаты. Если это последний игрок, комната удаляется.",
+    request={
+            "user_token": OpenApiParameter(name="user_token", description="Токен пользователя", required=True),
+            "user_id": OpenApiParameter(name="user_id", description="ID пользователя", required=True)
+    },
     responses={
         200: OpenApiResponse(response=RoomSerializers, description="Игрок успешно вышел из комнаты"),
         204: OpenApiResponse(description="Комната удалена, так как в ней больше нет игроков"),
@@ -199,6 +235,9 @@ class RoundUpdate(APIView):
     @extend_schema(
         summary="Обновление раунда",
         description="Обновляет текущего художника в комнате, переходя к следующему игроку.",
+        request={
+            "token": OpenApiParameter(name="token", description="Токен комнаты", required=True)
+        },
         responses={
             200: OpenApiResponse(response=RoomSerializers, description="Раунд успешно обновлён"),
             403: OpenApiResponse(description="Нет прав для изменения раунда"),

@@ -1,11 +1,9 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from .models import User
-from rooms.models import Room
-from .serializers import UserSerializer
-from .serializers import LoginSerializer
+from .serializers import UserSerializer, LoginSerializer, UserRegisterSerializer
 
 
 class UserRegistration(APIView):
@@ -19,7 +17,7 @@ class UserRegistration(APIView):
         }
     )
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             return Response({"status": "User created", "id": user.id, "token": user.token}, status=status.HTTP_201_CREATED)
@@ -50,6 +48,7 @@ class UserListView(APIView):
     @extend_schema(
         summary="Получение списка пользователей",
         description="Возвращает список всех зарегистрированных пользователей.",
+        request=None,
         responses={
             200: OpenApiResponse(response=UserSerializer(many=True), description="Список пользователей"),
             404: OpenApiResponse(description="Пользователи не найдены")
@@ -59,5 +58,4 @@ class UserListView(APIView):
         users = User.objects.all() 
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
     

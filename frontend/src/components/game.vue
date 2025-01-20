@@ -149,7 +149,7 @@ function startDialogTimer() {
     dialogProgressValue.value = time / 30 * 100;
     if (time >= 10) {
       if (isPainter.value) {
-        await axios.post(`/api/room/${store.roomId}/round`, {
+        await axios.post(`/api/room/${store.roomId}/round/`, {
           token: store.token
         });
         socket.emit('changePainter');
@@ -318,7 +318,7 @@ onMounted(async () => {
     if (isPainter.value && !endRound.value) {
       endRound.value = true;
 
-      await axios.post(`/api/room/${store.roomId}/round`, {
+      await axios.post(`/api/room/${store.roomId}/round/`, {
           token: store.token
         });
       socket.emit('changePainter');
@@ -327,7 +327,7 @@ onMounted(async () => {
   socket.on('updateScore', (data) => {
     if (isPainter.value && data.userName != store.username) {
       socket.emit('updateScore', { userName: store.username, increment: 2, isOwner: true });
-      axios.patch(`/api/score/${store.userId}/update`, {
+      axios.patch(`/api/score/${store.userId}/update/`, {
         token: store.token,
         room_id: store.roomId,
         points: 2,
@@ -676,19 +676,19 @@ onMounted(async () => {
   transform: translate(-50%, -50%);
 }
 .chat-banner{
-position: absolute;
-padding:1.5% 0;
-width: 40%;
-top: -12%;
-text-transform: uppercase;
-text-align: center;
-box-shadow: 0px 6px 0px 0px #301a6b;
-background: deeppink;
-border-radius: 7px;
-color: #5cffb6;
-font-weight: bold;
-right:0;
-text-shadow: var(--text-shadow);
+  position: absolute;
+  padding:1.5% 0;
+  width: 40%;
+  top: -12%;
+  text-transform: uppercase;
+  text-align: center;
+  box-shadow: 0px 6px 0px 0px #301a6b;
+  background: deeppink;
+  border-radius: 7px;
+  color: #5cffb6;
+  font-weight: bold;
+  right:0;
+  text-shadow: var(--text-shadow);
 }
 
 .word-display{

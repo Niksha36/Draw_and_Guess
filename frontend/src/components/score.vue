@@ -23,7 +23,7 @@ export default {
             try {
                 const response = await axios.get('/api/users/');
                 this.users = response.data;
-                this.users.sort((a, b) => b.winGames - a.winGames).forEach((user, index));
+                this.users.sort((a, b) => b.winGames - a.winGames);
             } catch (error) {
                 console.error("Error fetching users:", error);
             }
@@ -77,7 +77,9 @@ export default {
     align-self: flex-start;
     margin: 5px;
 }
-
+.highlight {
+  background-color: orange;
+}
 .bg {
     position: absolute;
     background: url("../assets/textura.png");
