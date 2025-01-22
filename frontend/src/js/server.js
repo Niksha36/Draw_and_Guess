@@ -28,7 +28,7 @@ const io = new Server(server, {
     }
 });
 const redisClient = createClient({
-    url: 'redis://redis:6379'
+    url: 'redis://redis :6379'
 });
 redisClient.connect();
 

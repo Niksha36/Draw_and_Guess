@@ -96,10 +96,10 @@ function goToScore() {
           <div class="avatar">
             <img src="../assets/avatar.svg" alt="Avatar" class="avatar-img">
           </div>
-          <div v-if="store.username != ''" class="username">
+          <div v-if="store.username != ''" class="username" style ="user-select: none; -moz-user-select: none; margin:2%" >
             <p>Привет, {{ store.username }}!</p>
           </div>
-          <button class="logout" style="border: none" @click="logout" @mouseenter="playHoverSound" @mousedown="playClickSound">
+          <button class="logout" style="border: none; margin-top:0" @click="logout" @mouseenter="playHoverSound" @mousedown="playClickSound">
             <i class="fas fa-sign-out-alt"></i> {{ buttonText }}
           </button>
           <div class="button-play button" @click="goToGame" @mouseover="playHoverSound" @mousedown="playClickSound">
@@ -292,7 +292,7 @@ function goToScore() {
 }
 @media (max-height: 460px) {
   .button {
-    margin-top: 15px;
+    margin-top: 10px;
     background-size: contain;
     font-size: 18px;
     width: 271px;
@@ -302,7 +302,7 @@ function goToScore() {
   .logout {
     height: 10%;
     font-size: 16px;
-    margin-top: 15px;
+    margin-top: 10px;
     padding-top: 10px;
     padding-bottom: 10px;
   }
@@ -333,6 +333,11 @@ function goToScore() {
   .button {
     margin-top: 20px;
     background-size: contain;
+  }
+}
+@media (max-height: 628px) {
+  .username p {
+    font-size: 15px; padding: 0; margin: 1%; width: 100%;
   }
 }
 

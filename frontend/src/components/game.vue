@@ -209,9 +209,9 @@ function socketDisconnect() {
   socket.disconnect();
 };
 
-// window.addEventListener('beforeunload', () => {
-//   store.beforeunmount = true;
-// });
+window.addEventListener('beforeunload', () => {
+  store.beforeunmount = true;
+});
 
 function drawOnCanvas(data) {
   const canvas = document.getElementById('paintCanvas');

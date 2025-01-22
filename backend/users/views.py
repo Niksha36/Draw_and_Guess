@@ -15,7 +15,7 @@ class UserRegistration(APIView):
             201: OpenApiResponse(response=UserSerializer, description="Пользователь успешно создан"),
             400: OpenApiResponse(description="Ошибки валидации")
         }
-    )
+    )   
     def post(self, request):
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():

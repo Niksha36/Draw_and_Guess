@@ -8,6 +8,9 @@ from rooms.models import Room
 from scores.models import PlayerScore
 from rooms.serializers import RoomSerializers
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from django.db import transaction
+import time
+from django.db.utils import OperationalError
 
 
 class ScoreUpdate(APIView):
@@ -50,17 +53,26 @@ class ScoreUpdate(APIView):
         serializer = RoomSerializers(room)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def update_score(self, room, points, user):
-        try:
-            player_score, created = PlayerScore.objects.get_or_create(
-                user=user,
-                room=room,
-                defaults={'score': points}
-            )
-            if not created:
-                player_score.score = F('score') + points
-                player_score.save()
-        except IntegrityError:
-            player_score = PlayerScore.objects.get(user=user, room=room)
-            player_score.score = F('score') + points
-            player_score.save()
+    def update_score(self, room, points, user, max_retries=5, delay=0.1):
+        retries = 0
+        while retries < max_retries:
+            try:
+                with transaction.atomic():
+                    player_score, created = PlayerScore.objects.select_for_update().get_or_create(
+                        user=user,
+                        room=room,
+                        defaults={'score': points}
+                    )
+                    if not created:
+                        player_score.score = F('score') + points
+                        player_score.save()
+                break
+            except OperationalError:
+                retries += 1
+                time.sleep(delay)
+            except IntegrityError:
+                with transaction.atomic():
+                    player_score = PlayerScore.objects.select_for_update().get(user=user, room=room)
+                    player_score.score = F('score') + points
+                    player_score.save()
+                break
