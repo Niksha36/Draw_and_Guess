@@ -12,7 +12,7 @@ Draw & Guess is an exciting online multiplayer game that combines creativity and
 
 5️⃣ Django Backend 🐍
 
-# User interface
+# User interface ✨
 
 <p style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%">
   <img src="https://github.com/user-attachments/assets/4beaf0f6-d927-4a90-b40d-032168615f21" alt="Screenshot 1" style="width: 45%; height: auto;" />
@@ -23,7 +23,7 @@ Draw & Guess is an exciting online multiplayer game that combines creativity and
   <img src="https://github.com/user-attachments/assets/cfb5e587-7443-4a55-98d3-68913c982ec1" alt="Screenshot 6" style="width: 45%; height: auto;" />
   <img src="https://github.com/user-attachments/assets/215d9ac8-6012-42be-98d9-d1dc392d26d7" alt="Screenshot 7" style="width: 45%; height: auto;" />
   <img src="https://github.com/user-attachments/assets/75ed2dd0-ec4f-4f06-9e96-b56eace2f092" alt="Screenshot 8" style="width: 45%; height: auto;" />
-  <img src="https://github.com/user-attachments/assets/1fd63ef3-39f7-4830-b81d-a95c5b7e3e52" alt="Screenshot 9" style="height: 20%; height: auto;" />
+  <img src="https://github.com/user-attachments/assets/1fd63ef3-39f7-4830-b81d-a95c5b7e3e52" alt="Screenshot 9" style="width: 20%; height: auto;" />
 </p>
 
 
