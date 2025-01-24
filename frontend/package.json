@@ -20,6 +20,7 @@
     "socket.io-client": "^4.8.1",
     "string-similarity": "^4.0.4",
     "vue": "^3.5.13",
+    "vue-cli-service": "^5.0.10",
     "vue-exit-intent": "^2.2.0",
     "vue-farewell": "^1.1.2",
     "vue-router": "^4.5.0"
