@@ -21,7 +21,6 @@ RUN npm install -g serve
 
 RUN npm install vue-cli-service
 
-
 # Expose порт для сервера
 EXPOSE 5173
 
