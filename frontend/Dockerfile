@@ -18,8 +18,8 @@ RUN npm run build
 
 # Устанавливаем сервер для раздачи статических файлов
 RUN npm install -g serve
+
 RUN npm install vue-cli-service
-RUN npm install express
 
 # Expose порт для сервера
 EXPOSE 5173
